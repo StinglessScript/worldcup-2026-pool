@@ -123,9 +123,9 @@ export const Sidebar = () => {
           ))}
         </nav>
 
-        {/* Leaderboard - scrollable */}
+        {/* Leaderboard - scrollable with fade */}
         <div className="flex-1 min-h-0 flex flex-col border-t border-white/10 overflow-hidden">
-          <div className="flex-1 min-h-0 pt-2 pb-2">
+          <div className="relative flex-1 min-h-0">
             <LeaderboardList />
           </div>
         </div>
