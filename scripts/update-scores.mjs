@@ -6,13 +6,19 @@
 import { initializeApp, cert } from 'firebase-admin/app';
 import { getDatabase } from 'firebase-admin/database';
 
+// Timeout after 2 minutes
+setTimeout(() => {
+  console.error('Script timed out after 2 minutes');
+  process.exit(1);
+}, 120000);
+
 // FIFA API constants
 const FIFA_COMPETITION_ID = '17';
 const FIFA_SEASON_ID = '285023';
 
 // Initialize Firebase Admin
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-initializeApp({
+const app = initializeApp({
   credential: cert(serviceAccount),
   databaseURL: process.env.FIREBASE_DATABASE_URL,
 });
@@ -54,6 +60,7 @@ async function fetchFifaMatches() {
 
   const url = `https://api.fifa.com/api/v3/calendar/matches?idseason=${FIFA_SEASON_ID}&idcompetition=${FIFA_COMPETITION_ID}&from=${today}&to=${tomorrow}&count=500`;
 
+  console.log(`Fetching FIFA API: ${url}`);
   const res = await fetch(url);
   if (!res.ok) throw new Error(`FIFA API error: ${res.status}`);
   const data = await res.json();
@@ -69,16 +76,17 @@ async function main() {
   console.log(`Found ${fifaMatches.length} matches today`);
 
   // Get matches from DB
+  console.log('Reading matches from database...');
   const matchesSnap = await db.ref('matches').once('value');
   const matches = matchesSnap.val();
   if (!matches) {
-    console.log('No matches in database');
+    console.log('No matches in database, exiting');
     return;
   }
+  console.log(`Found ${Object.keys(matches).length} matches in database`);
 
   // Update scores
   const scoreUpdates = {};
-  let updatedCount = 0;
 
   for (const fifaMatch of fifaMatches) {
     for (const [gameId, match] of Object.entries(matches)) {
@@ -98,22 +106,22 @@ async function main() {
 
   if (Object.keys(scoreUpdates).length > 0) {
     await db.ref().update(scoreUpdates);
-    updatedCount = Object.keys(scoreUpdates).length;
-    console.log(`Updated ${updatedCount} scores`);
+    console.log(`Updated ${Object.keys(scoreUpdates).length} scores`);
   } else {
     console.log('No score changes');
   }
 
   // Calculate points for updated matches
+  console.log('Reading users...');
   const usersSnap = await db.ref('users').once('value');
   const users = usersSnap.val();
   if (!users) {
-    console.log('No users in database');
+    console.log('No users in database, exiting');
     return;
   }
+  console.log(`Found ${Object.keys(users).length} users`);
 
   const pointUpdates = {};
-  let pointsCalculated = 0;
 
   for (const matchId of Object.keys(scoreUpdates).map(k => k.split('/')[1])) {
     const matchData = (await db.ref(`matches/${matchId}`).once('value')).val();
@@ -131,14 +139,15 @@ async function main() {
 
       if (pred.points !== points) {
         pointUpdates[`predictions/${userId}/${matchId}/points`] = points;
-        pointsCalculated++;
       }
     }
   }
 
   if (Object.keys(pointUpdates).length > 0) {
     await db.ref().update(pointUpdates);
-    console.log(`Calculated ${pointsCalculated} prediction points`);
+    console.log(`Calculated ${Object.keys(pointUpdates).length} prediction points`);
+  } else {
+    console.log('No points to calculate');
   }
 
   // Update user total scores
@@ -163,7 +172,12 @@ async function main() {
   console.log('Done!');
 }
 
-main().catch(err => {
-  console.error('Error:', err);
-  process.exit(1);
-});
+main()
+  .then(() => {
+    console.log('Exiting successfully');
+    process.exit(0);
+  })
+  .catch(err => {
+    console.error('Error:', err);
+    process.exit(1);
+  });
