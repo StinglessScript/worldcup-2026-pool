@@ -18,12 +18,30 @@ const FIFA_SEASON_ID = '285023';
 
 // Initialize Firebase Admin
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-const app = initializeApp({
+initializeApp({
   credential: cert(serviceAccount),
   databaseURL: process.env.FIREBASE_DATABASE_URL,
 });
 
 const db = getDatabase();
+
+/**
+ * Extract description from FIFA locale array
+ */
+function getLocaleText(arr, locale = 'en-GB') {
+  if (!arr || !Array.isArray(arr) || arr.length === 0) return '';
+  const found = arr.find(item => item.Locale === locale);
+  return found ? found.Description : arr[0].Description;
+}
+
+/**
+ * Parse group name: "Group A" → "A"
+ */
+function parseGroup(groupName) {
+  if (!groupName) return null;
+  const match = groupName.match(/Group\s+(.+)/i);
+  return match ? match[1] : groupName;
+}
 
 /**
  * Determine match winner
@@ -51,11 +69,34 @@ function calculatePoints(homeScore, awayScore, homePred, awayPred) {
 }
 
 /**
+ * Convert FIFA API match to our database format
+ */
+function fifaMatchToDbFormat(fifaMatch) {
+  return {
+    game: fifaMatch.MatchNumber,
+    fifaId: fifaMatch.IdMatch,
+    round: getLocaleText(fifaMatch.StageName),
+    group: parseGroup(getLocaleText(fifaMatch.GroupName)),
+    date: fifaMatch.Date,
+    timestamp: Math.floor(new Date(fifaMatch.Date).getTime() / 1000),
+    location: getLocaleText(fifaMatch.Stadium?.Name),
+    locationCity: getLocaleText(fifaMatch.Stadium?.CityName),
+    locationCountry: fifaMatch.Stadium?.IdCountry || '',
+    home: fifaMatch.Home?.Abbreviation || '',
+    homeName: fifaMatch.Home?.ShortClubName || getLocaleText(fifaMatch.Home?.TeamName),
+    homeScore: fifaMatch.HomeTeamScore ?? fifaMatch.Home?.Score ?? -1,
+    away: fifaMatch.Away?.Abbreviation || '',
+    awayName: fifaMatch.Away?.ShortClubName || getLocaleText(fifaMatch.Away?.TeamName),
+    awayScore: fifaMatch.AwayTeamScore ?? fifaMatch.Away?.Score ?? -1,
+  };
+}
+
+/**
  * Fetch today's matches from FIFA API
  */
 async function fetchFifaMatches() {
   const now = new Date();
-  const today = now.toISOString().split('T')[0]; // YYYY-MM-DD
+  const today = now.toISOString().split('T')[0];
   const tomorrow = new Date(now.getTime() + 86400000).toISOString().split('T')[0];
 
   const url = `https://api.fifa.com/api/v3/calendar/matches?idseason=${FIFA_SEASON_ID}&idcompetition=${FIFA_COMPETITION_ID}&from=${today}&to=${tomorrow}&count=500`;
@@ -75,43 +116,66 @@ async function main() {
   const fifaMatches = await fetchFifaMatches();
   console.log(`Found ${fifaMatches.length} matches today`);
 
-  // Get matches from DB
-  console.log('Reading matches from database...');
-  const matchesSnap = await db.ref('matches').once('value');
-  const matches = matchesSnap.val();
-  if (!matches) {
-    console.log('No matches in database, exiting');
+  if (fifaMatches.length === 0) {
+    console.log('No matches today, exiting');
     return;
   }
-  console.log(`Found ${Object.keys(matches).length} matches in database`);
 
-  // Update scores
-  const scoreUpdates = {};
+  // Get existing matches from DB
+  console.log('Reading matches from database...');
+  const matchesSnap = await db.ref('matches').once('value');
+  const existingMatches = matchesSnap.val() || {};
+  console.log(`Found ${Object.keys(existingMatches).length} matches in database`);
 
-  for (const fifaMatch of fifaMatches) {
-    for (const [gameId, match] of Object.entries(matches)) {
-      if (match.fifaId === fifaMatch.IdMatch) {
-        const homeScore = fifaMatch.Home?.Score ?? -1;
-        const awayScore = fifaMatch.Away?.Score ?? -1;
-
-        if (homeScore >= 0 && match.homeScore !== homeScore) {
-          scoreUpdates[`matches/${gameId}/homeScore`] = homeScore;
-        }
-        if (awayScore >= 0 && match.awayScore !== awayScore) {
-          scoreUpdates[`matches/${gameId}/awayScore`] = awayScore;
-        }
-      }
+  // Build fifaId → gameId lookup
+  const fifaIdToGameId = {};
+  for (const [gameId, match] of Object.entries(existingMatches)) {
+    if (match.fifaId) {
+      fifaIdToGameId[match.fifaId] = gameId;
     }
   }
 
-  if (Object.keys(scoreUpdates).length > 0) {
-    await db.ref().update(scoreUpdates);
-    console.log(`Updated ${Object.keys(scoreUpdates).length} scores`);
-  } else {
-    console.log('No score changes');
+  // Update scores and sync new matches
+  const updates = {};
+  let updatedCount = 0;
+  let newMatchCount = 0;
+
+  for (const fifaMatch of fifaMatches) {
+    const parsed = fifaMatchToDbFormat(fifaMatch);
+    const existingGameId = fifaIdToGameId[fifaMatch.IdMatch];
+
+    if (existingGameId) {
+      // Existing match - update scores if changed
+      const existing = existingMatches[existingGameId];
+      if (parsed.homeScore >= 0 && existing.homeScore !== parsed.homeScore) {
+        updates[`matches/${existingGameId}/homeScore`] = parsed.homeScore;
+        updatedCount++;
+      }
+      if (parsed.awayScore >= 0 && existing.awayScore !== parsed.awayScore) {
+        updates[`matches/${existingGameId}/awayScore`] = parsed.awayScore;
+        updatedCount++;
+      }
+    } else {
+      // New match not in DB - insert full record
+      const gameId = String(parsed.game);
+      for (const [key, value] of Object.entries(parsed)) {
+        if (value !== undefined && value !== null) {
+          updates[`matches/${gameId}/${key}`] = value;
+        }
+      }
+      newMatchCount++;
+      console.log(`New match: ${parsed.homeName} vs ${parsed.awayName} (game ${gameId})`);
+    }
   }
 
-  // Calculate points for updated matches
+  if (Object.keys(updates).length > 0) {
+    await db.ref().update(updates);
+    console.log(`Updated ${updatedCount} scores, added ${newMatchCount} new matches`);
+  } else {
+    console.log('No changes needed');
+  }
+
+  // Calculate points for matches that have scores
   console.log('Reading users...');
   const usersSnap = await db.ref('users').once('value');
   const users = usersSnap.val();
@@ -123,22 +187,25 @@ async function main() {
 
   const pointUpdates = {};
 
-  for (const matchId of Object.keys(scoreUpdates).map(k => k.split('/')[1])) {
-    const matchData = (await db.ref(`matches/${matchId}`).once('value')).val();
-    if (!matchData || matchData.homeScore < 0 || matchData.awayScore < 0) continue;
+  // Check all matches with scores (not just today's)
+  const allMatchesSnap = await db.ref('matches').once('value');
+  const allMatches = allMatchesSnap.val() || {};
+
+  for (const [gameId, match] of Object.entries(allMatches)) {
+    if (!match.homeScore || match.homeScore < 0 || !match.awayScore || match.awayScore < 0) continue;
 
     for (const userId of Object.keys(users)) {
-      const predSnap = await db.ref(`predictions/${userId}/${matchId}`).once('value');
+      const predSnap = await db.ref(`predictions/${userId}/${gameId}`).once('value');
       const pred = predSnap.val();
       if (!pred) continue;
 
       const points = calculatePoints(
-        matchData.homeScore, matchData.awayScore,
+        match.homeScore, match.awayScore,
         pred.homePrediction, pred.awayPrediction
       );
 
       if (pred.points !== points) {
-        pointUpdates[`predictions/${userId}/${matchId}/points`] = points;
+        pointUpdates[`predictions/${userId}/${gameId}/points`] = points;
       }
     }
   }
@@ -153,8 +220,8 @@ async function main() {
   // Update user total scores
   const scoreDiffUpdates = {};
   for (const path of Object.keys(pointUpdates)) {
-    const [, userId, matchId] = path.split('/');
-    const before = (await db.ref(`predictions/${userId}/${matchId}/points`).once('value')).val() ?? 0;
+    const [, userId, gameId] = path.split('/');
+    const before = (await db.ref(`predictions/${userId}/${gameId}/points`).once('value')).val() ?? 0;
     const after = pointUpdates[path];
     const diff = after - before;
 
