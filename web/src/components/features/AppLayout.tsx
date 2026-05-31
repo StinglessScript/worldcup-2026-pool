@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { bgImage, worldcupLogo } from '../../assets';
 import { useAuth, useLeague } from '../../hooks';
+import { vi } from '../../i18n';
 import { DevToolsPanel } from './DevToolsPanel';
 import { LeaguePicture } from './LeaguePicture';
 import { Sidebar } from './Sidebar';
@@ -20,10 +21,10 @@ export const AppLayout = ({ children, className = '' }: AppLayoutProps) => {
     {
       to: userData ? `/${userData.userName}` : '/',
       icon: '⚽',
-      label: userData ? 'My Predictions' : 'All Matches',
+      label: userData ? vi.nav.predictions : vi.nav.allMatches,
     },
-    { to: '/leaderboard', icon: '🥇', label: 'Leaderboard' },
-    { to: '/leagues', icon: '🏆', label: 'Leagues' },
+    { to: '/leaderboard', icon: '🥇', label: vi.nav.leaderboard },
+    { to: '/leagues', icon: '🏆', label: vi.nav.leagues },
   ];
 
   // Fallback: hide splash after 1 second (for pages without data loading)
@@ -81,7 +82,7 @@ export const AppLayout = ({ children, className = '' }: AppLayoutProps) => {
                       className="h-8"
                     />
                     <span className="text-white font-light text-xs">
-                      FIFA WC 2026 POOL
+                      WORLD CUP 2026
                     </span>
                   </>
                 )}

@@ -2,25 +2,25 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import {
   AppLayout,
-  MatchesByDay,
   MatchesByGroup,
   MatchesHeader,
   UserHeader,
 } from '../components';
 import { useMatches, useAuth } from '../hooks';
+import { vi } from '../i18n';
 import {
   type UserPredictions,
   subscribeToPredictions,
   getUserByUsername,
 } from '../services';
 
-type ViewMode = 'day' | 'group';
+type ViewMode = 'groupStage' | 'knockout';
 
 export const UserProfile = () => {
   const { userName } = useParams();
   const { matches, loading: matchesLoading, error } = useMatches();
   const { user, userData } = useAuth();
-  const [viewMode, setViewMode] = React.useState<ViewMode>('day');
+  const [viewMode, setViewMode] = React.useState<ViewMode>('groupStage');
   const [predictions, setPredictions] = React.useState<UserPredictions>({});
   const [profileUserId, setProfileUserId] = React.useState<string | null>(null);
   const [profileLoading, setProfileLoading] = React.useState(true);
@@ -65,7 +65,7 @@ export const UserProfile = () => {
     <AppLayout>
       <div className="pt-8 px-4 pb-8 max-w-4xl mx-auto">
         {loading ? (
-          <div className="text-center text-white/70 py-20">Loading...</div>
+          <div className="text-center text-white/70 py-20">{vi.profile.loading}</div>
         ) : (
           <>
             {profileUserId && (
@@ -75,28 +75,25 @@ export const UserProfile = () => {
               />
             )}
 
-            <MatchesHeader viewMode={viewMode} onViewModeChange={setViewMode} />
+            <MatchesHeader
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              title={vi.profile.predictions}
+            />
 
             {error && (
-              <div className="text-center text-red-400">Error: {error}</div>
+              <div className="text-center text-red-400">{vi.common.error}: {error}</div>
             )}
 
-            {matches &&
-              (viewMode === 'day' ? (
-                <MatchesByDay
-                  matches={matches}
-                  isOwnProfile={isOwnProfile}
-                  userId={profileUserId ?? undefined}
-                  predictions={predictions}
-                />
-              ) : (
-                <MatchesByGroup
-                  matches={matches}
-                  isOwnProfile={isOwnProfile}
-                  userId={profileUserId ?? undefined}
-                  predictions={predictions}
-                />
-              ))}
+            {matches && (
+              <MatchesByGroup
+                matches={matches}
+                isOwnProfile={isOwnProfile}
+                userId={profileUserId ?? undefined}
+                predictions={predictions}
+                filter={viewMode}
+              />
+            )}
           </>
         )}
       </div>

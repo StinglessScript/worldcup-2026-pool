@@ -6,6 +6,7 @@ import { auth, googleProvider } from '../../firebase';
 import { sidebarMenuBg } from '../../assets';
 import { useAuth } from '../../hooks/useAuth';
 import { useLeague } from '../../hooks/useLeague';
+import { vi } from '../../i18n';
 import { subscribeToLeaderboard, type UserWithId } from '../../services';
 import { getPositionCompact } from '../../utils';
 import { Button, ProfilePicture } from '../ui';
@@ -102,7 +103,7 @@ export const UserMenu = ({ mobile = false }: UserMenuProps) => {
   if (!user) {
     return (
       <Button onClick={handleSignIn} className={mobile ? 'text-xs' : 'w-full'}>
-        {mobile ? 'Sign In' : 'Sign In with Google'}
+        {mobile ? vi.nav.signIn : vi.nav.signInGoogle}
       </Button>
     );
   }
@@ -122,9 +123,9 @@ export const UserMenu = ({ mobile = false }: UserMenuProps) => {
               className="border-0 rounded-lg"
             />
             {[
-              { label: 'Score', value: userData.score, show: true },
+              { label: vi.userMenu.score, value: userData.score, show: true },
               {
-                label: 'Rank',
+                label: vi.userMenu.rank,
                 value: getPositionCompact(position!),
                 show: position !== null,
               },
@@ -170,7 +171,7 @@ export const UserMenu = ({ mobile = false }: UserMenuProps) => {
               <div className="relative aspect-square h-10 flex flex-col items-center justify-center overflow-hidden border-r border-white/10 pr-2">
                 <div className="absolute inset-0 scale-[-1] opacity-70" />
                 <span className="relative text-white/60 text-[8px] uppercase tracking-wider">
-                  Rank
+                  {vi.userMenu.rank}
                 </span>
                 <span className="relative text-white font-semibold text-sm">
                   {getPositionCompact(position)}
@@ -198,7 +199,7 @@ export const UserMenu = ({ mobile = false }: UserMenuProps) => {
                       onClick={closeMenu}
                       className={menuItemClass}
                     >
-                      <span>⚽</span> My Predictions
+                      <span>⚽</span> {vi.nav.predictions}
                     </Link>
                   </li>
                   <li>
@@ -207,7 +208,7 @@ export const UserMenu = ({ mobile = false }: UserMenuProps) => {
                       onClick={closeMenu}
                       className={menuItemClass}
                     >
-                      <span>🏆</span> My Leagues
+                      <span>🏆</span> {vi.nav.myLeagues}
                     </Link>
                   </li>
                 </>
@@ -218,7 +219,7 @@ export const UserMenu = ({ mobile = false }: UserMenuProps) => {
                   onClick={closeMenu}
                   className={menuItemClass}
                 >
-                  <span>✏️</span> Edit Profile
+                  <span>✏️</span> {vi.nav.editProfile}
                 </Link>
               </li>
               <li className={dividerClass} />
@@ -231,7 +232,7 @@ export const UserMenu = ({ mobile = false }: UserMenuProps) => {
                       onClick={closeMenu}
                       className={menuItemClass}
                     >
-                      <span>📋</span> Rules
+                      <span>📋</span> {vi.nav.rules}
                     </Link>
                   </li>
                   <li>
@@ -240,7 +241,7 @@ export const UserMenu = ({ mobile = false }: UserMenuProps) => {
                       onClick={closeMenu}
                       className={menuItemClass}
                     >
-                      <span>ℹ️</span> About
+                      <span>ℹ️</span> {vi.nav.about}
                     </Link>
                   </li>
                   <li className={dividerClass} />
@@ -255,7 +256,7 @@ export const UserMenu = ({ mobile = false }: UserMenuProps) => {
                   }}
                   className={menuItemClass}
                 >
-                  <span>👋</span> Sign Out
+                  <span>👋</span> {vi.nav.signOut}
                 </button>
               </li>
             </>

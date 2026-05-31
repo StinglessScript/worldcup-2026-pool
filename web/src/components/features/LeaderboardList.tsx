@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth, useLeague } from '../../hooks';
+import { vi } from '../../i18n';
 import { subscribeToLeaderboard, type UserWithId } from '../../services';
 import { getPositionCompact } from '../../utils';
 import { Card, ProfilePicture } from '../ui';
@@ -62,7 +63,7 @@ const UserRow = ({
         className={`text-white/70 font-medium ${compact ? 'text-sm' : 'text-lg'}`}
       >
         {user.score}
-        {!compact && <span className="text-sm font-normal"> pts</span>}
+        {!compact && <span className="text-sm font-normal"> {vi.match.pts}</span>}
       </span>
     </Link>
     {onRemove && (
@@ -135,14 +136,14 @@ export const LeaderboardList = ({
 
   if (loading) {
     return (
-      <div className="text-white/50 text-sm text-center py-4">Loading...</div>
+      <div className="text-white/50 text-sm text-center py-4">{vi.leaderboard.loading}</div>
     );
   }
 
   if (users.length === 0) {
     return (
       <div className="text-white/50 text-sm text-center py-4">
-        No players yet
+        {vi.leaderboard.noPlayers}
       </div>
     );
   }
@@ -162,7 +163,7 @@ export const LeaderboardList = ({
               onClick={() => setDropdownOpen(!dropdownOpen)}
               className="w-full flex items-center justify-between text-white/70 text-xs font-medium uppercase tracking-wider hover:text-white transition-colors"
             >
-              {selectedLeague ? selectedLeague.name : 'Leaderboard'}
+              {selectedLeague ? selectedLeague.name : vi.leaderboard.title}
               <span
                 className={`transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}
               >
@@ -187,7 +188,7 @@ export const LeaderboardList = ({
                       alt="Global"
                       className="w-10 h-10 rounded-xl object-cover"
                     />
-                    <span className="flex-1 truncate">FIFA WC 2026 POOL</span>
+                    <span className="flex-1 truncate">WORLD CUP 2026</span>
                     {!selectedLeague && <span className="ml-auto">✓</span>}
                   </button>
                 </li>
@@ -221,7 +222,7 @@ export const LeaderboardList = ({
           </div>
         ) : (
           <h3 className="text-white/70 text-xs font-medium uppercase tracking-wider mb-2 px-4">
-            Leaderboard
+            {vi.leaderboard.title}
           </h3>
         ))}
       {/* Podium for full variant */}

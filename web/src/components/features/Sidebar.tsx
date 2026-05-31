@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { worldcupLogo, sidebarMenuBg } from '../../assets';
 import { useLeague } from '../../hooks';
+import { vi } from '../../i18n';
 import { Card } from '../ui/Card';
 import { LeaderboardList } from './LeaderboardList';
 import { LeaguePicture } from './LeaguePicture';
@@ -51,14 +52,14 @@ export const Sidebar = () => {
               to="/rules"
               className="text-white/50 hover:text-white transition-colors flex items-center gap-1"
             >
-              Rules
+              {vi.nav.rules}
             </Link>
             <span className="text-white/20">•</span>
             <Link
               to="/about"
               className="text-white/50 hover:text-white transition-colors flex items-center gap-1"
             >
-              About
+              {vi.nav.about}
             </Link>
           </div>
         </div>

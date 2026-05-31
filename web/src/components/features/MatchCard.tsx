@@ -1,5 +1,6 @@
 import React from 'react';
 import { type Match, type Prediction, savePrediction } from '../../services';
+import { vi } from '../../i18n';
 import { Card } from '../ui/Card';
 
 // Import all flags dynamically
@@ -92,9 +93,9 @@ export const MatchCard = ({
   const predictionClass =
     'w-10 h-8 flex items-center justify-center bg-blue-600/30 border border-blue-400/30 rounded text-lg font-bold';
 
-  const dateString = matchDate.toLocaleDateString([], {
-    month: 'short',
-    day: 'numeric',
+  const dateString = matchDate.toLocaleDateString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
   });
 
   const showPoints = isPlayed && prediction;
@@ -218,7 +219,7 @@ export const MatchCard = ({
               {prediction.points > 0
                 ? `+${prediction.points}`
                 : prediction.points}{' '}
-              pts
+              {vi.match.pts}
             </span>
           </div>
         )}
@@ -226,7 +227,7 @@ export const MatchCard = ({
 
       {/* Footer: Group, Stadium, Date/Time */}
       <div className="flex items-center gap-2 text-xs text-white/50">
-        {match.group && <span>Group: {match.group}</span>}
+        {match.group && <span>{vi.match.group}: {match.group}</span>}
         {match.group && <span>·</span>}
         <span className="truncate">
           {match.locationCity}, {match.locationCountry}
@@ -238,7 +239,7 @@ export const MatchCard = ({
         {isLive && (
           <span className="ml-auto flex items-center gap-1.5 text-red-500 font-bold animate-pulse">
             <span className="w-2 h-2 bg-red-500 rounded-full" />
-            LIVE
+            {vi.match.live}
           </span>
         )}
       </div>

@@ -8,6 +8,7 @@ import {
   LeaguePicture,
 } from '../components';
 import { useAuth, useLeague } from '../hooks';
+import { vi } from '../i18n';
 import appIcon from '/app-icon.png';
 import {
   subscribeToUserLeagues,
@@ -51,7 +52,7 @@ export const Leagues = () => {
     try {
       const league = await getLeagueByInviteCode(inviteCode.trim());
       if (!league) {
-        setError('Invalid invite code');
+        setError(vi.leagues.invalidCode);
         return;
       }
 
@@ -61,7 +62,7 @@ export const Leagues = () => {
       setShowJoin(false);
       void navigate(`/league/${league.slug}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to join league');
+      setError(err instanceof Error ? err.message : vi.leagues.failedJoin);
     } finally {
       setJoining(false);
     }
@@ -74,14 +75,14 @@ export const Leagues = () => {
     <AppLayout>
       <div className="pt-8 px-4 pb-8 max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-white">My Leagues</h1>
+          <h1 className="text-3xl font-bold text-white">{vi.leagues.title}</h1>
           {user && (
             <div className="flex gap-2">
               <Button onClick={() => setShowJoin(true)} className="text-sm">
-                Join
+                {vi.leagues.join}
               </Button>
               <LinkButton to="/leagues/new" className="text-sm">
-                Create
+                {vi.leagues.create}
               </LinkButton>
             </div>
           )}
@@ -89,7 +90,7 @@ export const Leagues = () => {
 
         {!user && (
           <Card className="mb-6 p-6 text-center">
-            <p className="text-white/70">Sign in to create or join leagues</p>
+            <p className="text-white/70">{vi.leagues.signInToJoin}</p>
           </Card>
         )}
 
@@ -97,14 +98,14 @@ export const Leagues = () => {
         {showJoin && (
           <Card className="p-6 mb-6">
             <h2 className="text-xl font-semibold text-white mb-4">
-              Join League
+              {vi.leagues.joinLeague}
             </h2>
             <form onSubmit={(e) => void handleJoinLeague(e)}>
               <input
                 type="text"
                 value={inviteCode}
                 onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                placeholder="Enter invite code"
+                placeholder={vi.leagues.inviteCode}
                 className={`${inputClass} uppercase tracking-widest text-center font-mono`}
                 maxLength={6}
                 autoFocus
@@ -120,14 +121,14 @@ export const Leagues = () => {
                   }}
                   className="flex-1"
                 >
-                  Cancel
+                  {vi.leagues.cancel}
                 </Button>
                 <Button
                   type="submit"
                   disabled={joining || inviteCode.length < 6}
                   className="flex-1"
                 >
-                  {joining ? 'Joining...' : 'Join'}
+                  {joining ? vi.leagues.joining : vi.leagues.join}
                 </Button>
               </div>
             </form>
@@ -136,7 +137,7 @@ export const Leagues = () => {
 
         {/* Leagues List */}
         {loading ? (
-          <div className="text-center text-white/70 py-20">Loading...</div>
+          <div className="text-center text-white/70 py-20">{vi.common.loading}</div>
         ) : (
           <div className="space-y-3">
             {/* Global League */}
@@ -156,9 +157,9 @@ export const Leagues = () => {
                   />
                   <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-semibold text-white truncate">
-                      FIFA WC 2026 POOL
+                      WORLD CUP 2026
                     </h3>
-                    <p className="text-white/50 text-sm">Global Leaderboard</p>
+                    <p className="text-white/50 text-sm">{vi.leagues.globalLeaderboard}</p>
                   </div>
                   <span className="text-white/30">→</span>
                 </div>
@@ -169,10 +170,10 @@ export const Leagues = () => {
             {leagues.length === 0 && user && (
               <Card className="p-6 text-center">
                 <p className="text-white/70 mb-4">
-                  You haven't joined any leagues yet
+                  {vi.leagues.noLeagues}
                 </p>
                 <p className="text-white/50 text-sm">
-                  Create your own league or join one with an invite code
+                  {vi.leagues.noLeaguesDesc}
                 </p>
               </Card>
             )}
@@ -201,7 +202,7 @@ export const Leagues = () => {
                       </h3>
                       <p className="text-white/50 text-sm">
                         {league.memberCount}{' '}
-                        {league.memberCount === 1 ? 'member' : 'members'}
+                        {league.memberCount === 1 ? vi.leagues.member : vi.leagues.members}
                       </p>
                     </div>
                     <span className="text-white/30">→</span>

@@ -22,7 +22,7 @@ export const MatchesByDay = ({
   const groupedByDay = Object.values(matches).reduce<Record<string, Match[]>>(
     (acc, match) => {
       const date = new Date(match.date);
-      const dayKey = date.toLocaleDateString('en-US', {
+      const dayKey = date.toLocaleDateString('vi-VN', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',

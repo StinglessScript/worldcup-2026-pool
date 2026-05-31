@@ -1,17 +1,17 @@
 import React from 'react';
 import {
   AppLayout,
-  MatchesByDay,
   MatchesByGroup,
   MatchesHeader,
 } from '../components';
 import { useMatches } from '../hooks';
+import { vi } from '../i18n';
 
-type ViewMode = 'day' | 'group';
+type ViewMode = 'groupStage' | 'knockout';
 
 export const Home = () => {
   const { matches, loading, error } = useMatches();
-  const [viewMode, setViewMode] = React.useState<ViewMode>('day');
+  const [viewMode, setViewMode] = React.useState<ViewMode>('groupStage');
 
   // Hide splash once data is loaded
   React.useEffect(() => {
@@ -27,19 +27,16 @@ export const Home = () => {
 
         {/* Content */}
         {loading && (
-          <div className="text-center text-white/70">Loading matches...</div>
+          <div className="text-center text-white/70">{vi.home.loading}</div>
         )}
 
         {error && (
-          <div className="text-center text-red-400">Error: {error}</div>
+          <div className="text-center text-red-400">{vi.home.error}: {error}</div>
         )}
 
-        {matches &&
-          (viewMode === 'day' ? (
-            <MatchesByDay matches={matches} />
-          ) : (
-            <MatchesByGroup matches={matches} />
-          ))}
+        {matches && (
+          <MatchesByGroup matches={matches} filter={viewMode} />
+        )}
       </div>
     </AppLayout>
   );

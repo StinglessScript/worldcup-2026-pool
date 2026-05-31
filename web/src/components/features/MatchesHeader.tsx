@@ -1,6 +1,7 @@
 import { Chip } from '../ui/Chip';
+import { vi } from '../../i18n';
 
-type ViewMode = 'day' | 'group';
+type ViewMode = 'groupStage' | 'knockout';
 
 type MatchesHeaderProps = {
   viewMode: ViewMode;
@@ -11,23 +12,23 @@ type MatchesHeaderProps = {
 export const MatchesHeader = ({
   viewMode,
   onViewModeChange,
-  title = 'Matches',
+  title = vi.home.title,
 }: MatchesHeaderProps) => {
   return (
     <div className="flex justify-between items-center mb-6">
       <h2 className="text-3xl font-bold leading-none">{title}</h2>
       <div className="flex items-center gap-2">
         <Chip
-          active={viewMode === 'day'}
-          onClick={() => onViewModeChange('day')}
+          active={viewMode === 'groupStage'}
+          onClick={() => onViewModeChange('groupStage')}
         >
-          By Day
+          {vi.matchesHeader.groupStage}
         </Chip>
         <Chip
-          active={viewMode === 'group'}
-          onClick={() => onViewModeChange('group')}
+          active={viewMode === 'knockout'}
+          onClick={() => onViewModeChange('knockout')}
         >
-          By Group
+          {vi.matchesHeader.knockoutStage}
         </Chip>
       </div>
     </div>
