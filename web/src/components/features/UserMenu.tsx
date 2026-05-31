@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { signInWithPopup, signOut } from 'firebase/auth';
 import { useNavigate, Link } from 'react-router-dom';
 import { auth, googleProvider } from '../../firebase';
-import { sidebarMenuBg } from '../../assets';
 import { useAuth } from '../../hooks/useAuth';
 import { useLeague } from '../../hooks/useLeague';
 import { vi } from '../../i18n';
@@ -12,7 +11,7 @@ import { getPositionCompact } from '../../utils';
 import { Button, ProfilePicture } from '../ui';
 
 const menuItemClass =
-  'w-full px-4 py-3 text-left text-white hover:bg-white/10 transition-colors cursor-pointer flex items-center gap-2 rounded-lg text-sm';
+  'w-full px-4 py-3 text-left text-white hover:bg-white/10 transition-colors cursor-pointer flex items-center gap-3 rounded-lg text-sm';
 
 const dividerClass = 'border-t border-white/10 my-1';
 
@@ -107,12 +106,12 @@ export const UserMenu = ({ mobile = false }: UserMenuProps) => {
       </Button>
     );
   }
-  console.log({ user });
+
   return (
     <div ref={buttonRef} className="relative">
       <Button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center ${mobile ? 'gap-x-2 p-0! pr-2! border border-black/10 rounded-lg bg-white/10' : `w-full gap-3 justify-start px-3! p-2! border border-white/10 bg-black/20 backdrop-blur-sm ${isOpen ? 'rounded-t-xl rounded-b-none' : 'rounded-xl'}`}`}
+        className={`flex items-center ${mobile ? 'gap-x-2 p-0! pr-2! border border-black/10 rounded-lg bg-white/10' : `w-full gap-3 justify-start px-3! py-2.5! border border-white/10 bg-white/5 hover:bg-white/10 backdrop-blur-sm transition-all ${isOpen ? 'rounded-t-xl rounded-b-none border-b-0' : 'rounded-xl'}`}`}
       >
         {!mobile && userData && (
           <>
@@ -120,40 +119,28 @@ export const UserMenu = ({ mobile = false }: UserMenuProps) => {
               src={userData.photoURL}
               name={userData.displayName}
               size="md"
-              className="border-0 rounded-lg"
+              className="border-0 rounded-xl"
             />
-            {[
-              { label: vi.userMenu.score, value: userData.score, show: true },
-              {
-                label: vi.userMenu.rank,
-                value: getPositionCompact(position!),
-                show: position !== null,
-              },
-            ]
-              .filter((item) => item.show)
-              .map((item) => (
-                <div
-                  key={item.label}
-                  className="relative aspect-square h-16 flex flex-col items-center justify-center rounded-lg overflow-hidden"
-                >
-                  <div
-                    className="absolute inset-0 scale-[-1] opacity-70"
-                    style={{
-                      backgroundImage: `url(${sidebarMenuBg})`,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                    }}
-                  />
-                  <span className="relative text-white/60 text-[10px] uppercase tracking-wider">
-                    {item.label}
-                  </span>
-                  <span className="relative text-white font-semibold text-xl">
-                    {item.value}
-                  </span>
-                </div>
-              ))}
+            <div className="flex-1 min-w-0 text-left">
+              <div className="text-white font-medium text-sm truncate">
+                {userData.displayName}
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-white/50">
+                  {vi.userMenu.score}: <span className="text-white font-semibold">{userData.score}</span>
+                </span>
+                {position !== null && (
+                  <>
+                    <span className="text-white/20">·</span>
+                    <span className="text-white/50">
+                      {vi.userMenu.rank}: <span className="text-white font-semibold">{getPositionCompact(position)}</span>
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
             <span
-              className={`ml-auto text-white/50 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+              className={`text-white/40 text-xs transition-transform ${isOpen ? 'rotate-180' : ''}`}
             >
               ▼
             </span>
@@ -168,12 +155,9 @@ export const UserMenu = ({ mobile = false }: UserMenuProps) => {
               className="border-0 rounded-lg rounded-r-none"
             />
             {position !== null && (
-              <div className="relative aspect-square h-10 flex flex-col items-center justify-center overflow-hidden border-r border-white/10 pr-2">
-                <div className="absolute inset-0 scale-[-1] opacity-70" />
-                <span className="relative text-white/60 text-[8px] uppercase tracking-wider">
-                  {vi.userMenu.rank}
-                </span>
-                <span className="relative text-white font-semibold text-sm">
+              <div className="flex items-center gap-1.5 px-2">
+                <span className="text-white/50 text-[10px] uppercase">{vi.userMenu.rank}</span>
+                <span className="text-white font-semibold text-sm">
                   {getPositionCompact(position)}
                 </span>
               </div>
@@ -199,7 +183,7 @@ export const UserMenu = ({ mobile = false }: UserMenuProps) => {
                       onClick={closeMenu}
                       className={menuItemClass}
                     >
-                      <span>⚽</span> {vi.nav.predictions}
+                      <span className="text-base">⚽</span> {vi.nav.predictions}
                     </Link>
                   </li>
                   <li>
@@ -208,7 +192,7 @@ export const UserMenu = ({ mobile = false }: UserMenuProps) => {
                       onClick={closeMenu}
                       className={menuItemClass}
                     >
-                      <span>🏆</span> {vi.nav.myLeagues}
+                      <span className="text-base">🏆</span> {vi.nav.myLeagues}
                     </Link>
                   </li>
                 </>
@@ -219,7 +203,7 @@ export const UserMenu = ({ mobile = false }: UserMenuProps) => {
                   onClick={closeMenu}
                   className={menuItemClass}
                 >
-                  <span>✏️</span> {vi.nav.editProfile}
+                  <span className="text-base">✏️</span> {vi.nav.editProfile}
                 </Link>
               </li>
               <li className={dividerClass} />
@@ -232,7 +216,7 @@ export const UserMenu = ({ mobile = false }: UserMenuProps) => {
                       onClick={closeMenu}
                       className={menuItemClass}
                     >
-                      <span>📋</span> {vi.nav.rules}
+                      <span className="text-base">📋</span> {vi.nav.rules}
                     </Link>
                   </li>
                   <li>
@@ -241,7 +225,7 @@ export const UserMenu = ({ mobile = false }: UserMenuProps) => {
                       onClick={closeMenu}
                       className={menuItemClass}
                     >
-                      <span>ℹ️</span> {vi.nav.about}
+                      <span className="text-base">ℹ️</span> {vi.nav.about}
                     </Link>
                   </li>
                   <li className={dividerClass} />
@@ -256,7 +240,7 @@ export const UserMenu = ({ mobile = false }: UserMenuProps) => {
                   }}
                   className={menuItemClass}
                 >
-                  <span>👋</span> {vi.nav.signOut}
+                  <span className="text-base">👋</span> {vi.nav.signOut}
                 </button>
               </li>
             </>
@@ -276,7 +260,7 @@ export const UserMenu = ({ mobile = false }: UserMenuProps) => {
           ) : (
             <ul
               ref={dropdownRef}
-              className="p-2 w-full backdrop-blur-2xl bg-black/20 border border-white/10 border-t-0 rounded-b-xl"
+              className="p-2 w-full backdrop-blur-2xl bg-black/40 border border-white/10 border-t-0 rounded-b-xl"
             >
               {menuContent}
             </ul>
