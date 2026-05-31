@@ -155,7 +155,7 @@ export const LeaderboardList = ({
   const restUsers = !isCompact && users.length >= 3 ? users.slice(3) : users;
 
   return (
-    <div className="flex flex-col h-full min-h-0">
+    <div className="flex flex-col flex-1 min-h-0">
       {isCompact &&
         (leagues.length > 0 ? (
           <div ref={dropdownRef} className="relative px-4 mb-2">
@@ -230,7 +230,7 @@ export const LeaderboardList = ({
 
       {/* User list - wrapped in Card for full variant */}
       {isCompact ? (
-        <div className="relative flex-1 min-h-0 overflow-hidden">
+        <div className="relative flex-1 min-h-0">
           <div
             className={`absolute top-0 left-0 right-0 h-8 bg-linear-to-b from-black to-transparent pointer-events-none z-10 transition-opacity ${
               showTopFade ? 'opacity-100' : 'opacity-0'
@@ -239,7 +239,7 @@ export const LeaderboardList = ({
           <div
             ref={scrollRef}
             onScroll={handleScroll}
-            className="absolute inset-0 overflow-y-auto flex flex-col gap-y-2 px-2 pb-6"
+            className="flex flex-col overflow-y-auto h-full gap-y-2 px-2 pb-6"
           >
             {users.map((user, index) => (
               <UserRow

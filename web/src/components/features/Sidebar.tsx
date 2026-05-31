@@ -11,7 +11,7 @@ import { subscribeToLeaderboard, type UserWithId } from '../../services';
 import React from 'react';
 
 const navItemClass =
-  'flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-colors';
+  'flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition-colors';
 const navActiveClass = 'bg-white/15 text-white font-medium';
 const navInactiveClass = 'text-white/60 hover:text-white hover:bg-white/5';
 
@@ -41,10 +41,10 @@ export const Sidebar = () => {
   ];
 
   return (
-    <aside className="w-64 shrink-0 p-3 h-screen sticky top-0">
-      <Card className="h-full flex flex-col rounded-xl after:hidden overflow-hidden">
-        {/* Logo */}
-        <div className="relative w-full flex flex-col overflow-hidden shrink-0">
+    <aside className="w-80 shrink-0 p-4 h-screen sticky top-0">
+      <Card className="h-full max-h-[calc(100vh-2rem)] flex flex-col rounded-xl after:hidden overflow-hidden">
+        {/* Logo - compact */}
+        <div className="relative w-full flex flex-col overflow-hidden pb-1">
           <img
             src={sidebarMenuBg}
             alt=""
@@ -55,17 +55,12 @@ export const Sidebar = () => {
             className="relative z-10 flex items-center justify-center py-4 hover:opacity-90 transition-opacity"
           >
             {selectedLeague ? (
-              <div className="flex flex-col items-center gap-2">
-                <LeaguePicture
-                  src={selectedLeague.imageURL}
-                  name={selectedLeague.name}
-                  size="lg"
-                  className="h-16 w-16 drop-shadow-lg"
-                />
-                <span className="text-white text-xs font-medium text-center px-2 truncate max-w-56">
-                  {selectedLeague.name}
-                </span>
-              </div>
+              <LeaguePicture
+                src={selectedLeague.imageURL}
+                name={selectedLeague.name}
+                size="lg"
+                className="h-20 w-20 drop-shadow-lg"
+              />
             ) : (
               <img
                 src={worldcupLogo}
@@ -80,7 +75,7 @@ export const Sidebar = () => {
         {user && userData && (
           <Link
             to={`/${userData.userName}`}
-            className="flex items-center gap-3 px-3 py-3 mx-2 mt-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors shrink-0"
+            className="flex items-center gap-3 px-3 py-2.5 mx-3 mt-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
           >
             <ProfilePicture
               src={userData.photoURL}
@@ -107,7 +102,7 @@ export const Sidebar = () => {
         )}
 
         {/* Navigation */}
-        <nav className="px-2 py-3 gap-0.5 shrink-0">
+        <nav className="px-3 py-2 gap-0.5">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -123,12 +118,28 @@ export const Sidebar = () => {
           ))}
         </nav>
 
-        {/* Leaderboard - scroll with calculated height */}
-        <div
-          className="flex-1 min-h-0 overflow-hidden"
-          style={{ maxHeight: 'calc(100vh - 380px)' }}
-        >
+        {/* Leaderboard - original UI with scroll */}
+        <div className="pt-2 flex-1 min-h-0 flex flex-col">
           <LeaderboardList />
+        </div>
+
+        {/* Footer Links */}
+        <div className="mt-auto p-3 border-t border-white/10">
+          <div className="flex gap-4 justify-center text-xs">
+            <Link
+              to="/rules"
+              className="text-white/50 hover:text-white transition-colors flex items-center gap-1"
+            >
+              {vi.nav.rules}
+            </Link>
+            <span className="text-white/20">•</span>
+            <Link
+              to="/about"
+              className="text-white/50 hover:text-white transition-colors flex items-center gap-1"
+            >
+              {vi.nav.about}
+            </Link>
+          </div>
         </div>
       </Card>
     </aside>
