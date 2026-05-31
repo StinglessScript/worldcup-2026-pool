@@ -42,9 +42,9 @@ export const Sidebar = () => {
 
   return (
     <aside className="w-64 shrink-0 p-3 h-screen sticky top-0">
-      <Card className="h-full max-h-[calc(100vh-1.5rem)] flex flex-col rounded-xl after:hidden overflow-hidden">
+      <Card className="h-full flex flex-col rounded-xl after:hidden overflow-hidden">
         {/* Logo */}
-        <div className="relative w-full flex flex-col overflow-hidden">
+        <div className="relative w-full flex flex-col overflow-hidden shrink-0">
           <img
             src={sidebarMenuBg}
             alt=""
@@ -80,7 +80,7 @@ export const Sidebar = () => {
         {user && userData && (
           <Link
             to={`/${userData.userName}`}
-            className="flex items-center gap-3 px-3 py-3 mx-2 mt-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+            className="flex items-center gap-3 px-3 py-3 mx-2 mt-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors shrink-0"
           >
             <ProfilePicture
               src={userData.photoURL}
@@ -107,7 +107,7 @@ export const Sidebar = () => {
         )}
 
         {/* Navigation */}
-        <nav className="px-2 py-3 gap-0.5">
+        <nav className="px-2 py-3 gap-0.5 shrink-0">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -123,11 +123,12 @@ export const Sidebar = () => {
           ))}
         </nav>
 
-        {/* Leaderboard - scrollable, no box */}
-        <div className="flex-1 min-h-0 overflow-hidden">
-          <div className="h-full">
-            <LeaderboardList />
-          </div>
+        {/* Leaderboard - scroll with calculated height */}
+        <div
+          className="flex-1 min-h-0 overflow-hidden"
+          style={{ maxHeight: 'calc(100vh - 380px)' }}
+        >
+          <LeaderboardList />
         </div>
       </Card>
     </aside>
