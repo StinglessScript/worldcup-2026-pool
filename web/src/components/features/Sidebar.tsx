@@ -124,8 +124,10 @@ export const Sidebar = () => {
         </nav>
 
         {/* Leaderboard - scrollable, no box */}
-        <div className="flex-1 min-h-0 overflow-hidden px-1">
-          <LeaderboardList />
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <div className="h-full">
+            <LeaderboardList />
+          </div>
         </div>
       </Card>
     </aside>
