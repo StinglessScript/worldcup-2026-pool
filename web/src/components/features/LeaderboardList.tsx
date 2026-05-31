@@ -29,10 +29,10 @@ const UserRow = ({
   onRemove?: () => void;
 }) => (
   <div
-    className={`flex items-center gap-2 rounded-lg transition-colors px-2 py-1.5 ${
+    className={`flex items-center gap-2 rounded-md transition-all duration-150 px-2 py-1.5 ${
       isCurrentUser
-        ? 'border border-white/20 backdrop-blur-lg bg-white/10 hover:bg-white/15'
-        : 'hover:bg-white/5'
+        ? 'border border-white/[0.12] bg-white/[0.06]'
+        : 'hover:bg-white/[0.03]'
     }`}
   >
     <Link
@@ -40,7 +40,7 @@ const UserRow = ({
       className="flex items-center gap-2 flex-1 min-w-0"
     >
       <span
-        className={`text-center ${compact ? 'w-6 text-sm' : 'w-12 text-lg'}`}
+        className={`text-center text-white/30 font-mono ${compact ? 'w-6 text-[11px]' : 'w-8 text-xs'}`}
       >
         {getPositionCompact(position)}
       </span>
@@ -51,28 +51,31 @@ const UserRow = ({
       />
       <div className="flex-1 min-w-0">
         <div
-          className={`text-white truncate ${compact ? 'text-sm' : 'font-medium'}`}
+          className={`text-white/90 truncate ${compact ? 'text-[13px]' : 'text-sm font-medium'}`}
         >
           {user.displayName}
         </div>
         {!compact && (
-          <div className="text-white/50 text-sm">@{user.userName}</div>
+          <div className="text-white/30 text-xs">@{user.userName}</div>
         )}
       </div>
       <span
-        className={`text-white/70 font-medium ${compact ? 'text-sm' : 'text-lg'}`}
+        className={`text-white/50 font-medium tabular-nums ${compact ? 'text-[13px]' : 'text-sm'}`}
       >
         {user.score}
-        {!compact && <span className="text-sm font-normal"> {vi.match.pts}</span>}
+        {!compact && <span className="text-white/25 text-xs ml-0.5">đ</span>}
       </span>
     </Link>
     {onRemove && (
       <button
         onClick={onRemove}
-        className="p-1.5 text-white/30 rounded hover:cursor-pointer hover:text-white/80"
-        title="Remove from league"
+        className="p-1 text-white/20 rounded hover:cursor-pointer hover:text-white/50 transition-colors"
+        title="Xóa khỏi giải"
       >
-        ✕
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
       </button>
     )}
   </div>
@@ -158,20 +161,28 @@ export const LeaderboardList = ({
     <div className="flex flex-col flex-1 min-h-0">
       {isCompact &&
         (leagues.length > 0 ? (
-          <div ref={dropdownRef} className="relative px-4 mb-2">
+          <div ref={dropdownRef} className="relative px-3 mb-1.5">
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="w-full flex items-center justify-between text-white/70 text-xs font-medium uppercase tracking-wider hover:text-white transition-colors"
+              className="w-full flex items-center justify-between text-white/40 text-[11px] font-medium uppercase tracking-widest hover:text-white/60 transition-colors duration-150"
             >
-              {selectedLeague ? selectedLeague.name : vi.leaderboard.title}
-              <span
-                className={`transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}
+              {selectedLeague ? selectedLeague.name : 'Bảng xếp hạng'}
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={`transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`}
               >
-                ▼
-              </span>
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
             </button>
             {dropdownOpen && (
-              <ul className="absolute top-full left-2 right-2 mt-1 bg-black/80 backdrop-blur-lg border border-white/10 rounded-lg overflow-hidden z-20">
+              <ul className="absolute top-full left-0 right-0 mt-1 bg-black/90 backdrop-blur-xl border border-white/[0.06] rounded-md overflow-hidden z-20">
                 <li>
                   <button
                     onClick={() => {
@@ -181,15 +192,19 @@ export const LeaderboardList = ({
                         void navigate('/leagues');
                       }
                     }}
-                    className={`w-full px-3 py-2 text-left text-sm hover:bg-white/10 transition-colors flex items-center gap-2 ${!selectedLeague ? 'text-white bg-white/5' : 'text-white/70'}`}
+                    className={`w-full px-3 py-2 text-left text-[13px] hover:bg-white/[0.06] transition-colors flex items-center gap-2 ${!selectedLeague ? 'text-white bg-white/[0.04]' : 'text-white/60'}`}
                   >
                     <img
                       src={appIcon}
                       alt="Global"
-                      className="w-10 h-10 rounded-xl object-cover"
+                      className="w-8 h-8 rounded-md object-cover"
                     />
-                    <span className="flex-1 truncate">WORLD CUP 2026</span>
-                    {!selectedLeague && <span className="ml-auto">✓</span>}
+                    <span className="flex-1 truncate">World Cup 2026</span>
+                    {!selectedLeague && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/40">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
                   </button>
                 </li>
                 {leagues.map((league) => (
@@ -202,17 +217,19 @@ export const LeaderboardList = ({
                           void navigate(`/league/${league.slug}`);
                         }
                       }}
-                      className={`w-full px-3 py-2 text-left text-sm hover:bg-white/10 transition-colors flex items-center gap-2 ${selectedLeague?.id === league.id ? 'text-white bg-white/5' : 'text-white/70'}`}
+                      className={`w-full px-3 py-2 text-left text-[13px] hover:bg-white/[0.06] transition-colors flex items-center gap-2 ${selectedLeague?.id === league.id ? 'text-white bg-white/[0.04]' : 'text-white/60'}`}
                     >
                       <LeaguePicture
                         src={league.imageURL}
                         name={league.name}
                         size="sm"
-                        className="w-6 h-6"
+                        className="w-6 h-6 rounded-md"
                       />
                       <span className="flex-1 truncate">{league.name}</span>
                       {selectedLeague?.id === league.id && (
-                        <span className="ml-auto">✓</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/40">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
                       )}
                     </button>
                   </li>
@@ -221,25 +238,25 @@ export const LeaderboardList = ({
             )}
           </div>
         ) : (
-          <h3 className="text-white/70 text-xs font-medium uppercase tracking-wider mb-2 px-4">
-            {vi.leaderboard.title}
+          <h3 className="text-white/40 text-[11px] font-medium uppercase tracking-widest mb-1.5 px-3">
+            Bảng xếp hạng
           </h3>
         ))}
       {/* Podium for full variant */}
       {!isCompact && <Podium users={podiumUsers} />}
 
-      {/* User list - wrapped in Card for full variant */}
+      {/* User list */}
       {isCompact ? (
         <div className="relative flex-1 min-h-0">
           <div
-            className={`absolute top-0 left-0 right-0 h-8 bg-linear-to-b from-black to-transparent pointer-events-none z-10 transition-opacity ${
+            className={`absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-black/80 to-transparent pointer-events-none z-10 transition-opacity duration-200 ${
               showTopFade ? 'opacity-100' : 'opacity-0'
             }`}
           />
           <div
             ref={scrollRef}
             onScroll={handleScroll}
-            className="flex flex-col overflow-y-auto h-full gap-y-2 px-2 pb-6"
+            className="flex flex-col overflow-y-auto h-full gap-y-0.5 px-1.5 pb-4"
           >
             {users.map((user, index) => (
               <UserRow
