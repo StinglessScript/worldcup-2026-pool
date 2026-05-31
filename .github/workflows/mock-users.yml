@@ -1,0 +1,25 @@
+name: Mock 100 Users
+
+on:
+  workflow_dispatch:
+
+jobs:
+  mock-users:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install firebase-admin
+        working-directory: scripts
+
+      - name: Mock 100 users
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          FIREBASE_DATABASE_URL: ${{ secrets.FIREBASE_DATABASE_URL }}
+        run: node mock-100-users.mjs
+        working-directory: scripts
