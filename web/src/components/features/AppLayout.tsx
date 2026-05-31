@@ -25,6 +25,7 @@ export const AppLayout = ({ children, className = '' }: AppLayoutProps) => {
     },
     { to: '/leaderboard', icon: '🥇', label: vi.nav.leaderboard },
     { to: '/leagues', icon: '🏆', label: vi.nav.leagues },
+    { to: '/rules', icon: '📋', label: vi.nav.rules },
   ];
 
   // Fallback: hide splash after 1 second (for pages without data loading)
