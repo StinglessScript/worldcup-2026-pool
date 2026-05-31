@@ -38,9 +38,7 @@ export const Sidebar = () => {
       label: userData ? vi.nav.predictions : vi.nav.allMatches,
     },
     { to: '/leaderboard', icon: '🥇', label: vi.nav.leaderboard },
-    { to: '/leagues', icon: '🏆', label: vi.nav.leagues },
     { to: '/rules', icon: '📋', label: vi.nav.rules },
-    { to: '/about', icon: 'ℹ️', label: vi.nav.about },
   ];
 
   return (
@@ -110,7 +108,7 @@ export const Sidebar = () => {
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 min-h-0 flex flex-col px-2 py-3 gap-0.5 overflow-y-auto">
+        <nav className="px-2 py-3 gap-0.5">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -126,8 +124,8 @@ export const Sidebar = () => {
           ))}
         </nav>
 
-        {/* Compact Leaderboard */}
-        <div className="border-t border-white/10 flex flex-col min-h-0 max-h-64">
+        {/* Leaderboard - full display */}
+        <div className="flex-1 min-h-0 flex flex-col border-t border-white/10">
           <div className="px-4 py-2">
             <h3 className="text-white/50 text-[10px] font-medium uppercase tracking-wider">
               {vi.leaderboard.title}

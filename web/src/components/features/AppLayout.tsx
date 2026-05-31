@@ -24,7 +24,6 @@ export const AppLayout = ({ children, className = '' }: AppLayoutProps) => {
       label: userData ? vi.nav.predictions : vi.nav.allMatches,
     },
     { to: '/leaderboard', icon: '🥇', label: vi.nav.leaderboard },
-    { to: '/leagues', icon: '🏆', label: vi.nav.leagues },
     { to: '/rules', icon: '📋', label: vi.nav.rules },
   ];
 
