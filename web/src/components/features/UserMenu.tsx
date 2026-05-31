@@ -179,15 +179,6 @@ export const UserMenu = ({ mobile = false }: UserMenuProps) => {
                 <>
                   <li>
                     <Link
-                      to={`/${userData?.userName}`}
-                      onClick={closeMenu}
-                      className={menuItemClass}
-                    >
-                      <span className="text-base">⚽</span> {vi.nav.predictions}
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
                       to="/leagues"
                       onClick={closeMenu}
                       className={menuItemClass}

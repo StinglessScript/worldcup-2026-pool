@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { worldcupLogo, sidebarMenuBg } from '../../assets';
-import { useLeague } from '../../hooks';
+import { useAuth, useLeague } from '../../hooks';
 import { vi } from '../../i18n';
 import { Card } from '../ui/Card';
 import { LeaderboardList } from './LeaderboardList';
@@ -8,68 +8,80 @@ import { LeaguePicture } from './LeaguePicture';
 import { UserMenu } from './UserMenu';
 
 export const Sidebar = () => {
+  const { user, userData } = useAuth();
   const { selectedLeague } = useLeague();
 
   return (
-    <aside className="w-80 shrink-0 p-4 h-screen sticky top-0">
-      <Card className="h-full max-h-[calc(100vh-2rem)] flex flex-col rounded-2xl after:hidden overflow-hidden border border-white/10">
-        {/* Logo Section with gradient background */}
-        <div className="relative w-full overflow-hidden">
+    <aside className="w-72 shrink-0 p-3 h-screen sticky top-0">
+      <Card className="h-full max-h-[calc(100vh-1.5rem)] flex flex-col rounded-2xl after:hidden overflow-hidden border border-white/10">
+        {/* Logo */}
+        <div className="relative overflow-hidden">
           <img
             src={sidebarMenuBg}
             alt=""
             className="absolute inset-0 w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/40" />
           <Link
             to={selectedLeague ? `/league/${selectedLeague.slug}` : '/'}
-            className="relative z-10 flex items-center justify-center py-5 hover:opacity-90 transition-opacity"
+            className="relative z-10 flex items-center justify-center py-4 hover:opacity-90 transition-opacity"
           >
             {selectedLeague ? (
-              <div className="flex flex-col items-center gap-2">
-                <LeaguePicture
-                  src={selectedLeague.imageURL}
-                  name={selectedLeague.name}
-                  size="lg"
-                  className="h-20 w-20 drop-shadow-xl ring-2 ring-white/20"
-                />
-                <span className="text-white text-sm font-medium drop-shadow-lg">
-                  {selectedLeague.name}
-                </span>
-              </div>
+              <LeaguePicture
+                src={selectedLeague.imageURL}
+                name={selectedLeague.name}
+                size="lg"
+                className="h-16 w-16 drop-shadow-lg"
+              />
             ) : (
               <img
                 src={worldcupLogo}
                 alt="World Cup 2026"
-                className="h-20 drop-shadow-xl"
+                className="h-16 drop-shadow-lg"
               />
             )}
           </Link>
         </div>
 
-        {/* User Menu Section */}
-        <div className="px-3 py-3 bg-white/5 border-b border-white/10">
+        {/* Quick Nav + UserMenu */}
+        <div className="px-3 py-2 space-y-2 bg-white/5 border-b border-white/10">
+          {/* Predictions link - outside dropdown */}
+          {user && userData && (
+            <NavLink
+              to={`/${userData.userName}`}
+              className={({ isActive }) =>
+                `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all ${
+                  isActive
+                    ? 'bg-white/15 text-white font-medium'
+                    : 'text-white/70 hover:text-white hover:bg-white/10'
+                }`
+              }
+            >
+              <span>⚽</span>
+              <span>{vi.nav.predictions}</span>
+            </NavLink>
+          )}
           <UserMenu />
         </div>
 
         {/* Leaderboard */}
-        <div className="flex-1 min-h-0 flex flex-col pt-2">
+        <div className="flex-1 min-h-0 flex flex-col">
           <LeaderboardList />
         </div>
 
-        {/* Footer Links */}
-        <div className="mt-auto p-3 border-t border-white/10 bg-white/5">
-          <div className="flex gap-4 justify-center text-xs">
+        {/* Footer */}
+        <div className="p-2.5 border-t border-white/10 bg-white/5">
+          <div className="flex gap-3 justify-center text-[11px]">
             <Link
               to="/rules"
-              className="text-white/50 hover:text-white transition-colors flex items-center gap-1"
+              className="text-white/40 hover:text-white/70 transition-colors"
             >
               {vi.nav.rules}
             </Link>
-            <span className="text-white/20">•</span>
+            <span className="text-white/15">·</span>
             <Link
               to="/about"
-              className="text-white/50 hover:text-white transition-colors flex items-center gap-1"
+              className="text-white/40 hover:text-white/70 transition-colors"
             >
               {vi.nav.about}
             </Link>
