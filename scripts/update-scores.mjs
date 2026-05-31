@@ -49,12 +49,10 @@ function calculatePoints(homeScore, awayScore, homePred, awayPred) {
  */
 async function fetchFifaMatches() {
   const now = new Date();
-  const start = new Date(now);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(now);
-  end.setHours(23, 59, 59, 999);
+  const today = now.toISOString().split('T')[0]; // YYYY-MM-DD
+  const tomorrow = new Date(now.getTime() + 86400000).toISOString().split('T')[0];
 
-  const url = `https://api.fifa.com/api/v3/calendar/matches?idseason=${FIFA_SEASON_ID}&idcompetition=${FIFA_COMPETITION_ID}&from=${start.toISOString()}&to=${end.toISOString()}&count=500`;
+  const url = `https://api.fifa.com/api/v3/calendar/matches?idseason=${FIFA_SEASON_ID}&idcompetition=${FIFA_COMPETITION_ID}&from=${today}&to=${tomorrow}&count=500`;
 
   const res = await fetch(url);
   if (!res.ok) throw new Error(`FIFA API error: ${res.status}`);
