@@ -2,9 +2,11 @@ name: Update World Cup Scores
 
 on:
   schedule:
-    # Every 5 minutes
+    # Every 5 minutes (backup)
     - cron: '*/5 * * * *'
-  workflow_dispatch: # Allow manual trigger
+  workflow_dispatch: # Manual trigger
+  repository_dispatch: # External trigger (UptimeRobot, etc.)
+    types: [update-scores]
 
 jobs:
   update-scores:
