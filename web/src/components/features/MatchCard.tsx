@@ -2,7 +2,7 @@ import React from 'react';
 import { type Match, type Prediction, savePrediction } from '../../services';
 import { vi } from '../../i18n';
 import { Card } from '../ui/Card';
-import { isLive, isUpcoming } from '../../utils';
+import { isLive } from '../../utils';
 
 // Import all flags dynamically
 const flagModules: Record<string, string> = import.meta.glob(
@@ -45,9 +45,9 @@ export const MatchCard = ({
 
   // Use utility functions for match status
   const matchIsLive = isLive(match);
-  const matchIsUpcoming = isUpcoming(match);
 
-  const canPredict = isOwnProfile && userId && !predictionsClosed && matchIsUpcoming;
+  // Can predict if: own profile, user exists, predictions not closed (10 mins before kickoff)
+  const canPredict = isOwnProfile && userId && !predictionsClosed;
 
   const [homePrediction, setHomePrediction] = React.useState<string>(
     prediction?.homePrediction?.toString() ?? ''
