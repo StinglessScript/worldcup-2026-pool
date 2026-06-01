@@ -84,7 +84,7 @@ export const UpcomingMatches = ({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {upcomingMatches.map((match) => (
-          <div key={match.game} className="relative">
+          <div key={match.game} className="flex flex-col gap-2">
             <MatchCard
               match={match}
               isOwnProfile={isOwnProfile}
@@ -92,15 +92,13 @@ export const UpcomingMatches = ({
               prediction={predictions?.[match.game]}
             />
 
-            {/* Countdown overlay */}
+            {/* Countdown bar below match card */}
             {countdown[match.game] && (
-              <div className="absolute top-2 right-2">
-                <CountdownBadge
-                  timeLeft={countdown[match.game]}
-                  isClosed={countdown[match.game] === vi.match.closed}
-                  match={match}
-                />
-              </div>
+              <CountdownBar
+                timeLeft={countdown[match.game]}
+                isClosed={countdown[match.game] === vi.match.closed}
+                match={match}
+              />
             )}
           </div>
         ))}
@@ -109,32 +107,54 @@ export const UpcomingMatches = ({
   );
 };
 
-type CountdownBadgeProps = {
+type CountdownBarProps = {
   timeLeft: string;
   isClosed: boolean;
   match: Match;
 };
 
-const CountdownBadge = ({ timeLeft, isClosed, match }: CountdownBadgeProps) => {
+const CountdownBar = ({ timeLeft, isClosed, match }: CountdownBarProps) => {
   const now = Date.now();
   const cutoffTime = match.timestamp * 1000 - 10 * 60 * 1000;
   const timeLeftMs = cutoffTime - now;
+  const totalTime = 24 * 60 * 60 * 1000; // 24 hours max
+  const progress = Math.max(0, Math.min(100, ((totalTime - timeLeftMs) / totalTime) * 100));
 
   // Determine urgency level
-  let urgencyClass = 'bg-green-600/80 text-green-100'; // > 1 hour
+  let barColor = 'bg-green-500'; // > 1 hour
+  let bgColor = 'bg-green-900/30';
+  let textColor = 'text-green-400';
+
   if (timeLeftMs <= 0) {
-    urgencyClass = 'bg-red-600/80 text-red-100'; // Closed
+    barColor = 'bg-red-500';
+    bgColor = 'bg-red-900/30';
+    textColor = 'text-red-400';
   } else if (timeLeftMs <= 30 * 60 * 1000) {
-    urgencyClass = 'bg-red-600/80 text-red-100 animate-pulse'; // < 30 mins
+    barColor = 'bg-red-500';
+    bgColor = 'bg-red-900/30';
+    textColor = 'text-red-400';
   } else if (timeLeftMs <= 60 * 60 * 1000) {
-    urgencyClass = 'bg-yellow-600/80 text-yellow-100'; // < 1 hour
+    barColor = 'bg-yellow-500';
+    bgColor = 'bg-yellow-900/30';
+    textColor = 'text-yellow-400';
   }
 
   return (
-    <span
-      className={`px-2 py-1 rounded-full text-xs font-bold ${urgencyClass}`}
-    >
-      {isClosed ? '🔒' : '⏳'} {timeLeft}
-    </span>
+    <div className={`${bgColor} rounded-lg p-2`}>
+      <div className="flex items-center justify-between mb-1">
+        <span className={`text-xs font-medium ${textColor}`}>
+          {isClosed ? '🔒 Đã đóng' : '⏳ Còn lại'}
+        </span>
+        <span className={`text-xs font-bold ${textColor}`}>
+          {timeLeft}
+        </span>
+      </div>
+      <div className="w-full bg-white/10 rounded-full h-1.5">
+        <div
+          className={`${barColor} h-1.5 rounded-full transition-all duration-1000`}
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+    </div>
   );
 };
