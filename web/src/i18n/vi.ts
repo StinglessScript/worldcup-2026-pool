@@ -34,6 +34,8 @@ export const vi = {
     matches: 'trận',
     closed: 'Đã đóng',
     predictBefore: 'Dự đoán trước',
+    liveMatches: 'Đang diễn ra',
+    recentResults: 'Kết quả gần đây',
   },
 
   // Matches Header

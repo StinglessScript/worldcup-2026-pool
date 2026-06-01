@@ -2,6 +2,7 @@ import React from 'react';
 import { type Match, type Prediction, savePrediction } from '../../services';
 import { vi } from '../../i18n';
 import { Card } from '../ui/Card';
+import { isLive, isUpcoming } from '../../utils';
 
 // Import all flags dynamically
 const flagModules: Record<string, string> = import.meta.glob(
@@ -16,11 +17,14 @@ const getFlag = (code: string): string => {
   );
 };
 
+type MatchCardVariant = 'live' | 'upcoming' | 'recent' | 'default';
+
 type MatchCardProps = {
   match: Match;
   isOwnProfile?: boolean;
   userId?: string;
   prediction?: Prediction;
+  variant?: MatchCardVariant;
 };
 
 export const MatchCard = ({
@@ -28,6 +32,7 @@ export const MatchCard = ({
   isOwnProfile = false,
   userId,
   prediction,
+  variant = 'default',
 }: MatchCardProps) => {
   const matchDate = new Date(match.date);
   const timeString = matchDate.toLocaleTimeString([], {
@@ -38,13 +43,11 @@ export const MatchCard = ({
   const cutoffTime = match.timestamp * 1000 - 10 * 60 * 1000; // 10 mins before kickoff
   const predictionsClosed = Date.now() > cutoffTime;
 
-  // Match is live if it started but hasn't finished (assume ~2.5 hours for a full match)
-  // TODO: Implement this properly (check FIFA API)
-  const kickoffTime = match.timestamp * 1000;
-  const matchEndEstimate = kickoffTime + 150 * 60 * 1000; // 2.5 hours after kickoff
-  const isLive =
-    !isPlayed && Date.now() >= kickoffTime && Date.now() < matchEndEstimate;
-  const canPredict = isOwnProfile && userId && !predictionsClosed;
+  // Use utility functions for match status
+  const matchIsLive = isLive(match);
+  const matchIsUpcoming = isUpcoming(match);
+
+  const canPredict = isOwnProfile && userId && !predictionsClosed && matchIsUpcoming;
 
   const [homePrediction, setHomePrediction] = React.useState<string>(
     prediction?.homePrediction?.toString() ?? ''
@@ -100,8 +103,24 @@ export const MatchCard = ({
 
   const showPoints = isPlayed && prediction;
 
+  // Determine card styling based on variant
+  const getCardClassName = () => {
+    const baseClass = 'p-4 transition-colors after:hidden';
+
+    switch (variant) {
+      case 'live':
+        return `${baseClass} border-red-500/50 bg-red-900/20 hover:bg-red-900/30`;
+      case 'upcoming':
+        return `${baseClass} border-blue-500/30 bg-blue-900/10 hover:bg-blue-900/20`;
+      case 'recent':
+        return `${baseClass} border-green-500/30 bg-green-900/10 hover:bg-green-900/20`;
+      default:
+        return `${baseClass} hover:bg-white/10`;
+    }
+  };
+
   return (
-    <Card className="p-4 hover:bg-white/10 transition-colors after:hidden">
+    <Card className={getCardClassName()}>
       {/* Teams and Points Row */}
       <div className="flex gap-3 mb-3">
         {/* Team Rows */}
@@ -236,7 +255,7 @@ export const MatchCard = ({
         <span>
           {dateString}, {timeString}
         </span>
-        {isLive && (
+        {matchIsLive && (
           <span className="ml-auto flex items-center gap-1.5 text-red-500 font-bold animate-pulse">
             <span className="w-2 h-2 bg-red-500 rounded-full" />
             {vi.match.live}

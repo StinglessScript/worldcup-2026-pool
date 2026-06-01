@@ -1,6 +1,7 @@
 import React from 'react';
 import { type Match, type Prediction } from '../../services';
 import { vi } from '../../i18n';
+import { isUpcoming, getTimeUntilCutoff, formatTimeRemaining, getUrgencyLevel } from '../../utils';
 import { MatchCard } from './MatchCard';
 
 type UpcomingMatchesProps = {
@@ -20,42 +21,23 @@ export const UpcomingMatches = ({
 
   // Filter matches in the next 24 hours that haven't been played
   const upcomingMatches = React.useMemo(() => {
-    const now = Date.now();
-    const in24Hours = now + 24 * 60 * 60 * 1000;
-
     return Object.values(matches)
-      .filter((match) => {
-        const kickoffTime = match.timestamp * 1000;
-        const isPlayed = match.homeScore >= 0 && match.awayScore >= 0;
-        return !isPlayed && kickoffTime > now && kickoffTime <= in24Hours;
-      })
+      .filter((match) => isUpcoming(match))
       .sort((a, b) => a.timestamp - b.timestamp);
   }, [matches]);
 
   // Update countdown timers every second
   React.useEffect(() => {
     const updateCountdowns = () => {
-      const now = Date.now();
       const newCountdowns: Record<string, string> = {};
 
       upcomingMatches.forEach((match) => {
-        const cutoffTime = match.timestamp * 1000 - 10 * 60 * 1000; // 10 mins before kickoff
-        const timeLeft = cutoffTime - now;
+        const timeLeft = getTimeUntilCutoff(match);
 
-        if (timeLeft <= 0) {
+        if (timeLeft === null) {
           newCountdowns[match.game] = vi.match.closed;
         } else {
-          const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-          const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-          const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-
-          if (hours > 0) {
-            newCountdowns[match.game] = `${hours}h ${minutes}m`;
-          } else if (minutes > 0) {
-            newCountdowns[match.game] = `${minutes}m ${seconds}s`;
-          } else {
-            newCountdowns[match.game] = `${seconds}s`;
-          }
+          newCountdowns[match.game] = formatTimeRemaining(timeLeft);
         }
       });
 
@@ -90,6 +72,7 @@ export const UpcomingMatches = ({
               isOwnProfile={isOwnProfile}
               userId={userId}
               prediction={predictions?.[match.game]}
+              variant="upcoming"
             />
 
             {/* Countdown bar below match card */}
@@ -114,44 +97,34 @@ type CountdownBarProps = {
 };
 
 const CountdownBar = ({ timeLeft, isClosed, match }: CountdownBarProps) => {
-  const now = Date.now();
-  const cutoffTime = match.timestamp * 1000 - 10 * 60 * 1000;
-  const timeLeftMs = cutoffTime - now;
+  const timeLeftMs = getTimeUntilCutoff(match) ?? 0;
   const totalTime = 24 * 60 * 60 * 1000; // 24 hours max
   const progress = Math.max(0, Math.min(100, ((totalTime - timeLeftMs) / totalTime) * 100));
+  const urgency = getUrgencyLevel(timeLeftMs);
 
-  // Determine urgency level
-  let barColor = 'bg-green-500'; // > 1 hour
-  let bgColor = 'bg-green-900/30';
-  let textColor = 'text-green-400';
+  // Determine colors based on urgency
+  const colorMap = {
+    green: { bar: 'bg-green-500', bg: 'bg-green-900/30', text: 'text-green-400' },
+    yellow: { bar: 'bg-yellow-500', bg: 'bg-yellow-900/30', text: 'text-yellow-400' },
+    red: { bar: 'bg-red-500', bg: 'bg-red-900/30', text: 'text-red-400' },
+    closed: { bar: 'bg-red-500', bg: 'bg-red-900/30', text: 'text-red-400' },
+  };
 
-  if (timeLeftMs <= 0) {
-    barColor = 'bg-red-500';
-    bgColor = 'bg-red-900/30';
-    textColor = 'text-red-400';
-  } else if (timeLeftMs <= 30 * 60 * 1000) {
-    barColor = 'bg-red-500';
-    bgColor = 'bg-red-900/30';
-    textColor = 'text-red-400';
-  } else if (timeLeftMs <= 60 * 60 * 1000) {
-    barColor = 'bg-yellow-500';
-    bgColor = 'bg-yellow-900/30';
-    textColor = 'text-yellow-400';
-  }
+  const colors = colorMap[urgency];
 
   return (
-    <div className={`${bgColor} rounded-lg p-2`}>
+    <div className={`${colors.bg} rounded-lg p-2`}>
       <div className="flex items-center justify-between mb-1">
-        <span className={`text-xs font-medium ${textColor}`}>
+        <span className={`text-xs font-medium ${colors.text}`}>
           {isClosed ? '🔒 Đã đóng' : '⏳ Còn lại'}
         </span>
-        <span className={`text-xs font-bold ${textColor}`}>
+        <span className={`text-xs font-bold ${colors.text}`}>
           {timeLeft}
         </span>
       </div>
       <div className="w-full bg-white/10 rounded-full h-1.5">
         <div
-          className={`${barColor} h-1.5 rounded-full transition-all duration-1000`}
+          className={`${colors.bar} h-1.5 rounded-full transition-all duration-1000`}
           style={{ width: `${progress}%` }}
         />
       </div>

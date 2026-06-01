@@ -2,8 +2,10 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import {
   AppLayout,
+  LiveMatches,
   MatchesByGroup,
   MatchesHeader,
+  RecentResults,
   UpcomingMatches,
   UserHeader,
 } from '../components';
@@ -88,6 +90,14 @@ export const UserProfile = () => {
 
             {matches && (
               <>
+                {/* Live matches section */}
+                <LiveMatches
+                  matches={matches}
+                  isOwnProfile={isOwnProfile}
+                  userId={profileUserId ?? undefined}
+                  predictions={predictions}
+                />
+
                 {/* Upcoming matches section */}
                 {isOwnProfile && (
                   <UpcomingMatches
@@ -97,6 +107,14 @@ export const UserProfile = () => {
                     predictions={predictions}
                   />
                 )}
+
+                {/* Recent results section */}
+                <RecentResults
+                  matches={matches}
+                  isOwnProfile={isOwnProfile}
+                  userId={profileUserId ?? undefined}
+                  predictions={predictions}
+                />
 
                 <MatchesByGroup
                   matches={matches}
