@@ -186,26 +186,37 @@ async function main() {
   console.log(`Found ${Object.keys(users).length} users`);
 
   const pointUpdates = {};
+  const scoreDiffs = {}; // Track {userId: totalDiff}
 
   // Check all matches with scores (not just today's)
   const allMatchesSnap = await db.ref('matches').once('value');
   const allMatches = allMatchesSnap.val() || {};
 
   for (const [gameId, match] of Object.entries(allMatches)) {
-    if (!match.homeScore || match.homeScore < 0 || !match.awayScore || match.awayScore < 0) continue;
+    // Fix Bug 9: handle homeScore = 0 correctly
+    if (match.homeScore === undefined || match.homeScore === null || match.homeScore < 0) continue;
+    if (match.awayScore === undefined || match.awayScore === null || match.awayScore < 0) continue;
 
     for (const userId of Object.keys(users)) {
       const predSnap = await db.ref(`predictions/${userId}/${gameId}`).once('value');
       const pred = predSnap.val();
       if (!pred) continue;
 
-      const points = calculatePoints(
+      const newPoints = calculatePoints(
         match.homeScore, match.awayScore,
         pred.homePrediction, pred.awayPrediction
       );
 
-      if (pred.points !== points) {
-        pointUpdates[`predictions/${userId}/${gameId}/points`] = points;
+      if (pred.points !== newPoints) {
+        pointUpdates[`predictions/${userId}/${gameId}/points`] = newPoints;
+
+        // Fix Bug 2: Calculate diff BEFORE writing to DB
+        const oldPoints = pred.points ?? 0;
+        const diff = newPoints - oldPoints;
+
+        if (diff !== 0) {
+          scoreDiffs[userId] = (scoreDiffs[userId] || 0) + diff;
+        }
       }
     }
   }
@@ -217,23 +228,16 @@ async function main() {
     console.log('No points to calculate');
   }
 
-  // Update user total scores
-  const scoreDiffUpdates = {};
-  for (const path of Object.keys(pointUpdates)) {
-    const [, userId, gameId] = path.split('/');
-    const before = (await db.ref(`predictions/${userId}/${gameId}/points`).once('value')).val() ?? 0;
-    const after = pointUpdates[path];
-    const diff = after - before;
-
-    if (diff !== 0) {
+  // Update user total scores using pre-calculated diffs
+  if (Object.keys(scoreDiffs).length > 0) {
+    const scoreUpdates = {};
+    for (const [userId, totalDiff] of Object.entries(scoreDiffs)) {
       const currentScore = (await db.ref(`users/${userId}/score`).once('value')).val() ?? 0;
-      scoreDiffUpdates[`users/${userId}/score`] = currentScore + diff;
+      scoreUpdates[`users/${userId}/score`] = currentScore + totalDiff;
     }
-  }
 
-  if (Object.keys(scoreDiffUpdates).length > 0) {
-    await db.ref().update(scoreDiffUpdates);
-    console.log(`Updated ${Object.keys(scoreDiffUpdates).length} user scores`);
+    await db.ref().update(scoreUpdates);
+    console.log(`Updated ${Object.keys(scoreUpdates).length} user scores`);
   }
 
   console.log('Done!');
