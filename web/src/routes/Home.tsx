@@ -1,17 +1,17 @@
 import React from 'react';
 import {
   AppLayout,
+  LiveMatches,
   MatchesByGroup,
-  MatchesHeader,
+  RecentResults,
+  UpcomingMatches,
 } from '../components';
-import { useMatches } from '../hooks';
+import { useMatches, useAuth } from '../hooks';
 import { vi } from '../i18n';
-
-type ViewMode = 'groupStage' | 'knockout';
 
 export const Home = () => {
   const { matches, loading, error } = useMatches();
-  const [viewMode, setViewMode] = React.useState<ViewMode>('groupStage');
+  const { user } = useAuth();
 
   // Hide splash once data is loaded
   React.useEffect(() => {
@@ -23,8 +23,6 @@ export const Home = () => {
   return (
     <AppLayout>
       <div className="pt-8 px-4 pb-8 max-w-4xl mx-auto">
-        <MatchesHeader viewMode={viewMode} onViewModeChange={setViewMode} />
-
         {/* Content */}
         {loading && (
           <div className="text-center text-white/70">{vi.home.loading}</div>
@@ -35,7 +33,29 @@ export const Home = () => {
         )}
 
         {matches && (
-          <MatchesByGroup matches={matches} filter={viewMode} />
+          <>
+            {/* Live matches section */}
+            <LiveMatches
+              matches={matches}
+              isOwnProfile={false}
+            />
+
+            {/* Upcoming matches section */}
+            {user && (
+              <UpcomingMatches
+                matches={matches}
+                isOwnProfile={false}
+              />
+            )}
+
+            {/* Recent results section */}
+            <RecentResults
+              matches={matches}
+              isOwnProfile={false}
+            />
+
+            <MatchesByGroup matches={matches} />
+          </>
         )}
       </div>
     </AppLayout>

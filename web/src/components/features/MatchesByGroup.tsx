@@ -11,7 +11,6 @@ type MatchesByGroupProps = {
   isOwnProfile?: boolean;
   userId?: string;
   predictions?: UserPredictions;
-  filter?: 'groupStage' | 'knockout';
 };
 
 export const MatchesByGroup = ({
@@ -19,7 +18,6 @@ export const MatchesByGroup = ({
   isOwnProfile,
   userId,
   predictions,
-  filter,
 }: MatchesByGroupProps) => {
   // Group matches by group (or round if group is null)
   const groupedMatches = Object.values(matches).reduce<Record<string, Match[]>>(
@@ -40,15 +38,8 @@ export const MatchesByGroup = ({
   // Determine which groups are group stage vs knockout
   const isGroupStage = (key: string) => key.startsWith(vi.match.group + ' ');
 
-  // Filter groups based on the filter prop
-  const filteredGroups = Object.keys(groupedMatches).filter((key) => {
-    if (!filter) return true;
-    if (filter === 'groupStage') return isGroupStage(key);
-    return !isGroupStage(key);
-  });
-
   // Sort groups: A-L first, then knockout rounds
-  const sortedGroups = filteredGroups.sort((a, b) => {
+  const sortedGroups = Object.keys(groupedMatches).sort((a, b) => {
     const isGroupA = isGroupStage(a);
     const isGroupB = isGroupStage(b);
 

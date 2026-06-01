@@ -4,7 +4,6 @@ import {
   AppLayout,
   LiveMatches,
   MatchesByGroup,
-  MatchesHeader,
   RecentResults,
   UpcomingMatches,
   UserHeader,
@@ -17,13 +16,10 @@ import {
   getUserByUsername,
 } from '../services';
 
-type ViewMode = 'groupStage' | 'knockout';
-
 export const UserProfile = () => {
   const { userName } = useParams();
   const { matches, loading: matchesLoading, error } = useMatches();
   const { user, userData } = useAuth();
-  const [viewMode, setViewMode] = React.useState<ViewMode>('groupStage');
   const [predictions, setPredictions] = React.useState<UserPredictions>({});
   const [profileUserId, setProfileUserId] = React.useState<string | null>(null);
   const [profileLoading, setProfileLoading] = React.useState(true);
@@ -78,12 +74,6 @@ export const UserProfile = () => {
               />
             )}
 
-            <MatchesHeader
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-              title={vi.profile.predictions}
-            />
-
             {error && (
               <div className="text-center text-red-400">{vi.common.error}: {error}</div>
             )}
@@ -121,7 +111,6 @@ export const UserProfile = () => {
                   isOwnProfile={isOwnProfile}
                   userId={profileUserId ?? undefined}
                   predictions={predictions}
-                  filter={viewMode}
                 />
               </>
             )}
