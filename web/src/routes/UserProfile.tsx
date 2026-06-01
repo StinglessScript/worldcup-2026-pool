@@ -4,6 +4,7 @@ import {
   AppLayout,
   MatchesByGroup,
   MatchesHeader,
+  UpcomingMatches,
   UserHeader,
 } from '../components';
 import { useMatches, useAuth } from '../hooks';
@@ -86,13 +87,25 @@ export const UserProfile = () => {
             )}
 
             {matches && (
-              <MatchesByGroup
-                matches={matches}
-                isOwnProfile={isOwnProfile}
-                userId={profileUserId ?? undefined}
-                predictions={predictions}
-                filter={viewMode}
-              />
+              <>
+                {/* Upcoming matches section */}
+                {isOwnProfile && (
+                  <UpcomingMatches
+                    matches={matches}
+                    isOwnProfile={isOwnProfile}
+                    userId={profileUserId ?? undefined}
+                    predictions={predictions}
+                  />
+                )}
+
+                <MatchesByGroup
+                  matches={matches}
+                  isOwnProfile={isOwnProfile}
+                  userId={profileUserId ?? undefined}
+                  predictions={predictions}
+                  filter={viewMode}
+                />
+              </>
             )}
           </>
         )}

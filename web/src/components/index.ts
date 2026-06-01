@@ -22,6 +22,7 @@ export {
   Podium,
   ProtectedRoute,
   Sidebar,
+  UpcomingMatches,
   UserHeader,
   UserMenu,
 } from './features';

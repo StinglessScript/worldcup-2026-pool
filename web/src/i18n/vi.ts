@@ -30,6 +30,10 @@ export const vi = {
     live: 'TRỰC TIẾP',
     pts: 'đ',
     stadium: 'Sân',
+    upcoming: 'Sắp diễn ra',
+    matches: 'trận',
+    closed: 'Đã đóng',
+    predictBefore: 'Dự đoán trước',
   },
 
   // Matches Header
