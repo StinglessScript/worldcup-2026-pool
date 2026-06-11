@@ -112,70 +112,74 @@ async function fetchFifaMatches() {
  * Main: update scores, calculate points, update totals
  */
 async function main() {
-  console.log('Fetching FIFA matches...');
-  const fifaMatches = await fetchFifaMatches();
-  console.log(`Found ${fifaMatches.length} matches today`);
+  // Step 1: Sync scores from FIFA API.
+  // Failures here must not block point calculation below.
+  try {
+    console.log('Fetching FIFA matches...');
+    const fifaMatches = await fetchFifaMatches();
+    console.log(`Found ${fifaMatches.length} matches today`);
 
-  if (fifaMatches.length === 0) {
-    console.log('No matches today, exiting');
-    return;
-  }
+    if (fifaMatches.length > 0) {
+      // Get existing matches from DB
+      console.log('Reading matches from database...');
+      const matchesSnap = await db.ref('matches').once('value');
+      const existingMatches = matchesSnap.val() || {};
+      console.log(`Found ${Object.keys(existingMatches).length} matches in database`);
 
-  // Get existing matches from DB
-  console.log('Reading matches from database...');
-  const matchesSnap = await db.ref('matches').once('value');
-  const existingMatches = matchesSnap.val() || {};
-  console.log(`Found ${Object.keys(existingMatches).length} matches in database`);
-
-  // Build fifaId → gameId lookup
-  const fifaIdToGameId = {};
-  for (const [gameId, match] of Object.entries(existingMatches)) {
-    if (match.fifaId) {
-      fifaIdToGameId[match.fifaId] = gameId;
-    }
-  }
-
-  // Update scores and sync new matches
-  const updates = {};
-  let updatedCount = 0;
-  let newMatchCount = 0;
-
-  for (const fifaMatch of fifaMatches) {
-    const parsed = fifaMatchToDbFormat(fifaMatch);
-    const existingGameId = fifaIdToGameId[fifaMatch.IdMatch];
-
-    if (existingGameId) {
-      // Existing match - update scores if changed
-      const existing = existingMatches[existingGameId];
-      if (parsed.homeScore >= 0 && existing.homeScore !== parsed.homeScore) {
-        updates[`matches/${existingGameId}/homeScore`] = parsed.homeScore;
-        updatedCount++;
-      }
-      if (parsed.awayScore >= 0 && existing.awayScore !== parsed.awayScore) {
-        updates[`matches/${existingGameId}/awayScore`] = parsed.awayScore;
-        updatedCount++;
-      }
-    } else {
-      // New match not in DB - insert full record
-      const gameId = String(parsed.game);
-      for (const [key, value] of Object.entries(parsed)) {
-        if (value !== undefined && value !== null) {
-          updates[`matches/${gameId}/${key}`] = value;
+      // Build fifaId → gameId lookup
+      const fifaIdToGameId = {};
+      for (const [gameId, match] of Object.entries(existingMatches)) {
+        if (match.fifaId) {
+          fifaIdToGameId[match.fifaId] = gameId;
         }
       }
-      newMatchCount++;
-      console.log(`New match: ${parsed.homeName} vs ${parsed.awayName} (game ${gameId})`);
+
+      // Update scores and sync new matches
+      const updates = {};
+      let updatedCount = 0;
+      let newMatchCount = 0;
+
+      for (const fifaMatch of fifaMatches) {
+        const parsed = fifaMatchToDbFormat(fifaMatch);
+        const existingGameId = fifaIdToGameId[fifaMatch.IdMatch];
+
+        if (existingGameId) {
+          // Existing match - update scores if changed
+          const existing = existingMatches[existingGameId];
+          if (parsed.homeScore >= 0 && existing.homeScore !== parsed.homeScore) {
+            updates[`matches/${existingGameId}/homeScore`] = parsed.homeScore;
+            updatedCount++;
+          }
+          if (parsed.awayScore >= 0 && existing.awayScore !== parsed.awayScore) {
+            updates[`matches/${existingGameId}/awayScore`] = parsed.awayScore;
+            updatedCount++;
+          }
+        } else {
+          // New match not in DB - insert full record
+          const gameId = String(parsed.game);
+          for (const [key, value] of Object.entries(parsed)) {
+            if (value !== undefined && value !== null) {
+              updates[`matches/${gameId}/${key}`] = value;
+            }
+          }
+          newMatchCount++;
+          console.log(`New match: ${parsed.homeName} vs ${parsed.awayName} (game ${gameId})`);
+        }
+      }
+
+      if (Object.keys(updates).length > 0) {
+        await db.ref().update(updates);
+        console.log(`Updated ${updatedCount} scores, added ${newMatchCount} new matches`);
+      } else {
+        console.log('No changes needed');
+      }
     }
+  } catch (err) {
+    console.error('FIFA sync failed, continuing to point calculation:', err.message);
   }
 
-  if (Object.keys(updates).length > 0) {
-    await db.ref().update(updates);
-    console.log(`Updated ${updatedCount} scores, added ${newMatchCount} new matches`);
-  } else {
-    console.log('No changes needed');
-  }
-
-  // Calculate points for matches that have scores
+  // Step 2: Calculate points for all matches that already have scores.
+  // Always runs, even when FIFA returns no matches today.
   console.log('Reading users...');
   const usersSnap = await db.ref('users').once('value');
   const users = usersSnap.val();
