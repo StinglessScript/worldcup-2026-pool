@@ -92,14 +92,16 @@ function fifaMatchToDbFormat(fifaMatch) {
 }
 
 /**
- * Fetch today's matches from FIFA API
+ * Fetch recent matches from FIFA API.
+ * Window starts yesterday so late goals in matches that kick off near
+ * midnight UTC are still captured after the UTC date rolls over.
  */
 async function fetchFifaMatches() {
   const now = new Date();
-  const today = now.toISOString().split('T')[0];
+  const yesterday = new Date(now.getTime() - 86400000).toISOString().split('T')[0];
   const tomorrow = new Date(now.getTime() + 86400000).toISOString().split('T')[0];
 
-  const url = `https://api.fifa.com/api/v3/calendar/matches?idseason=${FIFA_SEASON_ID}&idcompetition=${FIFA_COMPETITION_ID}&from=${today}&to=${tomorrow}&count=500`;
+  const url = `https://api.fifa.com/api/v3/calendar/matches?idseason=${FIFA_SEASON_ID}&idcompetition=${FIFA_COMPETITION_ID}&from=${yesterday}&to=${tomorrow}&count=500`;
 
   console.log(`Fetching FIFA API: ${url}`);
   const res = await fetch(url);
