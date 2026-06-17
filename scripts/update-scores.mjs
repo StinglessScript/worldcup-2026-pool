@@ -191,38 +191,36 @@ async function main() {
   }
   console.log(`Found ${Object.keys(users).length} users`);
 
+  // Read predictions and matches in bulk. The admin SDK bypasses security
+  // rules, so the whole tree comes back in one round-trip instead of one
+  // read per user per game (which timed out as users/matches grew).
+  const allPredictions = (await db.ref('predictions').once('value')).val() || {};
+  const allMatches = (await db.ref('matches').once('value')).val() || {};
+
   const pointUpdates = {};
-  const scoreDiffs = {}; // Track {userId: totalDiff}
+  const userTotals = {}; // {userId: full recomputed score}
 
-  // Check all matches with scores (not just today's)
-  const allMatchesSnap = await db.ref('matches').once('value');
-  const allMatches = allMatchesSnap.val() || {};
+  for (const userId of Object.keys(users)) {
+    userTotals[userId] = 0;
+    const userPreds = allPredictions[userId] || {};
 
-  for (const [gameId, match] of Object.entries(allMatches)) {
-    // Fix Bug 9: handle homeScore = 0 correctly
-    if (match.homeScore === undefined || match.homeScore === null || match.homeScore < 0) continue;
-    if (match.awayScore === undefined || match.awayScore === null || match.awayScore < 0) continue;
+    for (const [gameId, pred] of Object.entries(userPreds)) {
+      const match = allMatches[gameId];
+      if (!match) continue;
 
-    for (const userId of Object.keys(users)) {
-      const predSnap = await db.ref(`predictions/${userId}/${gameId}`).once('value');
-      const pred = predSnap.val();
-      if (!pred) continue;
+      // handle score = 0 correctly; skip matches without a score yet
+      const hasScore =
+        match.homeScore != null && match.homeScore >= 0 &&
+        match.awayScore != null && match.awayScore >= 0;
 
-      const newPoints = calculatePoints(
-        match.homeScore, match.awayScore,
-        pred.homePrediction, pred.awayPrediction
-      );
+      const newPoints = hasScore
+        ? calculatePoints(match.homeScore, match.awayScore, pred.homePrediction, pred.awayPrediction)
+        : 0;
+
+      userTotals[userId] += newPoints;
 
       if (pred.points !== newPoints) {
         pointUpdates[`predictions/${userId}/${gameId}/points`] = newPoints;
-
-        // Fix Bug 2: Calculate diff BEFORE writing to DB
-        const oldPoints = pred.points ?? 0;
-        const diff = newPoints - oldPoints;
-
-        if (diff !== 0) {
-          scoreDiffs[userId] = (scoreDiffs[userId] || 0) + diff;
-        }
       }
     }
   }
@@ -234,14 +232,17 @@ async function main() {
     console.log('No points to calculate');
   }
 
-  // Update user total scores using pre-calculated diffs
-  if (Object.keys(scoreDiffs).length > 0) {
-    const scoreUpdates = {};
-    for (const [userId, totalDiff] of Object.entries(scoreDiffs)) {
-      const currentScore = (await db.ref(`users/${userId}/score`).once('value')).val() ?? 0;
-      scoreUpdates[`users/${userId}/score`] = currentScore + totalDiff;
+  // Recompute each user's total score from scratch and overwrite it.
+  // Idempotent: safe under concurrent/overlapping runs and self-heals any drift.
+  const scoreUpdates = {};
+  for (const userId of Object.keys(users)) {
+    const currentScore = users[userId].score ?? 0;
+    if (currentScore !== userTotals[userId]) {
+      scoreUpdates[`users/${userId}/score`] = userTotals[userId];
     }
+  }
 
+  if (Object.keys(scoreUpdates).length > 0) {
     await db.ref().update(scoreUpdates);
     console.log(`Updated ${Object.keys(scoreUpdates).length} user scores`);
   }
