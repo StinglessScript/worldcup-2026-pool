@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { bgImage, worldcupLogo } from '../../assets';
-import { useAuth, useLeague } from '../../hooks';
+import { useLeague } from '../../hooks';
 import { vi } from '../../i18n';
 import { DevToolsPanel } from './DevToolsPanel';
 import { LeaguePicture } from './LeaguePicture';
@@ -14,14 +14,13 @@ type AppLayoutProps = {
 };
 
 export const AppLayout = ({ children, className = '' }: AppLayoutProps) => {
-  const { userData } = useAuth();
   const { selectedLeague } = useLeague();
 
   const mobileNavItems = [
     {
-      to: userData ? `/${userData.userName}` : '/',
+      to: '/',
       icon: '⚽',
-      label: userData ? vi.nav.predictions : vi.nav.allMatches,
+      label: vi.nav.allMatches,
     },
     { to: '/leaderboard', icon: '🥇', label: vi.nav.leaderboard },
     { to: '/rules', icon: '📋', label: vi.nav.rules },

@@ -29,28 +29,31 @@ export const LiveMatches = ({
   }
 
   return (
-    <div className="mb-8">
-      <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-        <span className="relative flex h-3 w-3">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-        </span>
+    <div className="mb-6">
+      <h2 className="text-sm font-medium text-white/50 mb-3 flex items-center gap-2">
+        <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span>
         {vi.match.liveMatches}
-        <span className="text-sm font-normal text-white/50">
-          ({liveMatches.length})
-        </span>
       </h2>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {liveMatches.map((match) => (
-          <MatchCard
-            key={match.game}
-            match={match}
-            isOwnProfile={isOwnProfile}
-            userId={userId}
-            prediction={predictions?.[match.game]}
-            variant="live"
-          />
+          <div key={match.game} className="flex flex-col gap-2">
+            <MatchCard
+              match={match}
+              isOwnProfile={isOwnProfile}
+              userId={userId}
+              prediction={predictions?.[match.game]}
+              variant="live"
+            />
+
+            {/* Live indicator bar - same style as countdown bar */}
+            <div className="flex items-center gap-2 text-xs text-white/50">
+              <span className="text-green-400 font-medium">{vi.match.live}</span>
+              <div className="flex-1 bg-white/10 rounded-full h-1">
+                <div className="h-1 rounded-full bg-green-400 animate-pulse" style={{ width: '100%' }} />
+              </div>
+            </div>
+          </div>
         ))}
       </div>
     </div>

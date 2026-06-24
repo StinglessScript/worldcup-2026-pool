@@ -20,6 +20,7 @@ export {
   MatchesByDay,
   MatchesByGroup,
   MatchesHeader,
+  MatchTabs,
   Podium,
   ProtectedRoute,
   RecentResults,

@@ -49,6 +49,11 @@ export const MatchCard = ({
   // Can predict if: own profile, user exists, predictions not closed (10 mins before kickoff)
   const canPredict = isOwnProfile && userId && !predictionsClosed;
 
+  // Reveal a prediction value only for own profile, or for others once predictions are closed
+  const canRevealPrediction = isOwnProfile || predictionsClosed;
+  // Another user's prediction exists but is still hidden until lock
+  const predictionHidden = !canPredict && !canRevealPrediction && Boolean(prediction);
+
   const [homePrediction, setHomePrediction] = React.useState<string>(
     prediction?.homePrediction?.toString() ?? ''
   );
@@ -107,16 +112,11 @@ export const MatchCard = ({
   const getCardClassName = () => {
     const baseClass = 'p-4 transition-colors after:hidden';
 
-    switch (variant) {
-      case 'live':
-        return `${baseClass} border-red-500/50 bg-red-900/20 hover:bg-red-900/30`;
-      case 'upcoming':
-        return `${baseClass} border-blue-500/30 bg-blue-900/10 hover:bg-blue-900/20`;
-      case 'recent':
-        return `${baseClass} border-green-500/30 bg-green-900/10 hover:bg-green-900/20`;
-      default:
-        return `${baseClass} hover:bg-white/10`;
+    if (variant === 'live') {
+      return `${baseClass} border-l-2 border-l-red-500`;
     }
+
+    return `${baseClass} hover:bg-white/5`;
   };
 
   return (
@@ -161,10 +161,13 @@ export const MatchCard = ({
                 data-form-type="other"
               />
             )}
-            {!canPredict && prediction && (
+            {!canPredict && canRevealPrediction && prediction && (
               <span className={predictionClass}>
                 {prediction.homePrediction}
               </span>
+            )}
+            {predictionHidden && (
+              <span className={`${predictionClass} text-white/40`}>🔒</span>
             )}
           </div>
 
@@ -204,10 +207,13 @@ export const MatchCard = ({
                 data-form-type="other"
               />
             )}
-            {!canPredict && prediction && (
+            {!canPredict && canRevealPrediction && prediction && (
               <span className={predictionClass}>
                 {prediction.awayPrediction}
               </span>
+            )}
+            {predictionHidden && (
+              <span className={`${predictionClass} text-white/40`}>🔒</span>
             )}
           </div>
         </div>
@@ -255,7 +261,7 @@ export const MatchCard = ({
         <span>
           {dateString}, {timeString}
         </span>
-        {matchIsLive && (
+        {matchIsLive && variant !== 'live' && (
           <span className="ml-auto flex items-center gap-1.5 text-red-500 font-bold animate-pulse">
             <span className="w-2 h-2 bg-red-500 rounded-full" />
             {vi.match.live}

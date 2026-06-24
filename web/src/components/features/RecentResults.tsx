@@ -30,12 +30,9 @@ export const RecentResults = ({
 
   return (
     <div className="mb-8">
-      <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-        <span className="text-2xl">✅</span>
+      <h2 className="text-lg font-semibold text-white/80 mb-4 flex items-center gap-2">
         {vi.match.recentResults}
-        <span className="text-sm font-normal text-white/50">
-          ({recentMatches.length})
-        </span>
+        <span className="text-sm text-white/40">({recentMatches.length})</span>
       </h2>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">

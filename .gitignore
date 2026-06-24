@@ -141,3 +141,7 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 vnworldcup-firebase-adminsdk-*.json
+
+# Local infra configs with secrets
+wrangler.toml
+vercel-cron/

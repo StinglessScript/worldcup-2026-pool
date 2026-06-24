@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import {
   AppLayout,
   LiveMatches,
-  MatchesByGroup,
+  MatchesByDay,
   RecentResults,
   UpcomingMatches,
   UserHeader,
@@ -19,13 +19,13 @@ import {
 export const UserProfile = () => {
   const { userName } = useParams();
   const { matches, loading: matchesLoading, error } = useMatches();
-  const { user, userData } = useAuth();
+  const { user } = useAuth();
   const [predictions, setPredictions] = React.useState<UserPredictions>({});
   const [profileUserId, setProfileUserId] = React.useState<string | null>(null);
   const [profileLoading, setProfileLoading] = React.useState(true);
 
-  // Determine if viewing own profile
-  const isOwnProfile = userData?.userName === userName;
+  // Profile page is always read-only (predictions are on Home page)
+  const isOwnProfile = false;
 
   // Reset state when userName changes to prevent stale data flash
   React.useEffect(() => {
@@ -83,9 +83,6 @@ export const UserProfile = () => {
                 {/* Live matches section */}
                 <LiveMatches
                   matches={matches}
-                  isOwnProfile={isOwnProfile}
-                  userId={profileUserId ?? undefined}
-                  predictions={predictions}
                 />
 
                 {/* Upcoming matches section */}
@@ -106,7 +103,7 @@ export const UserProfile = () => {
                   predictions={predictions}
                 />
 
-                <MatchesByGroup
+                <MatchesByDay
                   matches={matches}
                   isOwnProfile={isOwnProfile}
                   userId={profileUserId ?? undefined}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { type Match, type Prediction } from '../../services';
 import { vi } from '../../i18n';
-import { isUpcoming, getTimeUntilCutoff, formatTimeRemaining, getUrgencyLevel } from '../../utils';
+import { getTimeUntilCutoff, formatTimeRemaining, getUrgencyLevel } from '../../utils';
 import { MatchCard } from './MatchCard';
 
 type UpcomingMatchesProps = {
@@ -19,12 +19,19 @@ export const UpcomingMatches = ({
 }: UpcomingMatchesProps) => {
   const [countdown, setCountdown] = React.useState<Record<string, string>>({});
 
-  // Filter matches in the next 24 hours that haven't been played
-  const upcomingMatches = React.useMemo(() => {
+  // Filter only the NEXT upcoming match
+  const nextMatch = React.useMemo(() => {
+    const now = Date.now();
     return Object.values(matches)
-      .filter((match) => isUpcoming(match))
-      .sort((a, b) => a.timestamp - b.timestamp);
+      .filter((match) => {
+        const kickoffTime = match.timestamp * 1000;
+        const isPlayed = match.homeScore >= 0 && match.awayScore >= 0;
+        return !isPlayed && kickoffTime > now;
+      })
+      .sort((a, b) => a.timestamp - b.timestamp)[0]; // Get only the first one
   }, [matches]);
+
+  const upcomingMatches = nextMatch ? [nextMatch] : [];
 
   // Update countdown timers every second
   React.useEffect(() => {
@@ -56,12 +63,9 @@ export const UpcomingMatches = ({
 
   return (
     <div className="mb-8">
-      <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-        <span className="text-2xl">⏰</span>
+      <h2 className="text-lg font-semibold text-white/80 mb-4 flex items-center gap-2">
         {vi.match.upcoming}
-        <span className="text-sm font-normal text-white/50">
-          ({upcomingMatches.length} {vi.match.matches})
-        </span>
+        <span className="text-sm text-white/40">({upcomingMatches.length})</span>
       </h2>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -102,29 +106,22 @@ const CountdownBar = ({ timeLeft, isClosed, match }: CountdownBarProps) => {
   const progress = Math.max(0, Math.min(100, ((totalTime - timeLeftMs) / totalTime) * 100));
   const urgency = getUrgencyLevel(timeLeftMs);
 
-  // Determine colors based on urgency
-  const colorMap = {
-    green: { bar: 'bg-green-500', bg: 'bg-green-900/30', text: 'text-green-400' },
-    yellow: { bar: 'bg-yellow-500', bg: 'bg-yellow-900/30', text: 'text-yellow-400' },
-    red: { bar: 'bg-red-500', bg: 'bg-red-900/30', text: 'text-red-400' },
-    closed: { bar: 'bg-red-500', bg: 'bg-red-900/30', text: 'text-red-400' },
-  };
-
-  const colors = colorMap[urgency];
+  // Simple color scheme
+  const isUrgent = urgency === 'red' || urgency === 'closed';
 
   return (
-    <div className={`${colors.bg} rounded-lg p-2`}>
-      <div className="flex items-center justify-between mb-1">
-        <span className={`text-xs font-medium ${colors.text}`}>
-          {isClosed ? '🔒 Đã đóng' : '⏳ Còn lại'}
-        </span>
-        <span className={`text-xs font-bold ${colors.text}`}>
-          {timeLeft}
-        </span>
-      </div>
-      <div className="w-full bg-white/10 rounded-full h-1.5">
+    <div className="flex items-center gap-2 text-xs text-white/50">
+      {isClosed ? (
+        <span className="text-red-400">Đã đóng</span>
+      ) : (
+        <>
+          <span>Còn lại</span>
+          <span className="font-medium text-white/70">{timeLeft}</span>
+        </>
+      )}
+      <div className="flex-1 bg-white/10 rounded-full h-1">
         <div
-          className={`${colors.bar} h-1.5 rounded-full transition-all duration-1000`}
+          className={`h-1 rounded-full transition-all duration-1000 ${isUrgent ? 'bg-red-400' : 'bg-white/30'}`}
           style={{ width: `${progress}%` }}
         />
       </div>

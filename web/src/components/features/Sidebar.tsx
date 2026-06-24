@@ -1,13 +1,12 @@
-import { Link, NavLink } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { worldcupLogo, sidebarMenuBg } from '../../assets';
-import { useAuth, useLeague } from '../../hooks';
+import { useLeague } from '../../hooks';
 import { Card } from '../ui/Card';
 import { LeaderboardList } from './LeaderboardList';
 import { LeaguePicture } from './LeaguePicture';
 import { UserMenu } from './UserMenu';
 
 export const Sidebar = () => {
-  const { user, userData } = useAuth();
   const { selectedLeague } = useLeague();
 
   return (
@@ -49,34 +48,6 @@ export const Sidebar = () => {
 
         {/* Navigation */}
         <div className="px-3 py-3 space-y-1 border-b border-white/[0.06]">
-          {user && userData && (
-            <NavLink
-              to={`/${userData.userName}`}
-              className={({ isActive }) =>
-                `flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] transition-all duration-150 ${
-                  isActive
-                    ? 'bg-white/[0.08] text-white'
-                    : 'text-white/60 hover:text-white/90 hover:bg-white/[0.04]'
-                }`
-              }
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
-                <path d="M2 12h20" />
-              </svg>
-              <span>Dự đoán</span>
-            </NavLink>
-          )}
           <UserMenu />
         </div>
 

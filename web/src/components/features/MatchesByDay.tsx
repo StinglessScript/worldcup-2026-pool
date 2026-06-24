@@ -1,8 +1,10 @@
+import React from 'react';
 import {
   type Match,
   type MatchesData,
   type UserPredictions,
 } from '../../services';
+import { isLive } from '../../utils';
 import { MatchCard } from './MatchCard';
 
 type MatchesByDayProps = {
@@ -10,6 +12,8 @@ type MatchesByDayProps = {
   isOwnProfile?: boolean;
   userId?: string;
   predictions?: UserPredictions;
+  excludeLive?: boolean;
+  excludeNextMatch?: boolean;
 };
 
 export const MatchesByDay = ({
@@ -17,9 +21,39 @@ export const MatchesByDay = ({
   isOwnProfile,
   userId,
   predictions,
+  excludeLive = false,
+  excludeNextMatch = false,
 }: MatchesByDayProps) => {
+  // Filter matches based on exclusions
+  const filteredMatches = React.useMemo(() => {
+    const now = Date.now();
+    let matchList = Object.values(matches);
+
+    // Exclude live matches if requested
+    if (excludeLive) {
+      matchList = matchList.filter((match) => !isLive(match));
+    }
+
+    // Exclude the next upcoming match if requested
+    if (excludeNextMatch) {
+      const nextMatch = matchList
+        .filter((match) => {
+          const kickoffTime = match.timestamp * 1000;
+          const isPlayed = match.homeScore >= 0 && match.awayScore >= 0;
+          return !isPlayed && kickoffTime > now;
+        })
+        .sort((a, b) => a.timestamp - b.timestamp)[0];
+
+      if (nextMatch) {
+        matchList = matchList.filter((match) => match.game !== nextMatch.game);
+      }
+    }
+
+    return matchList;
+  }, [matches, excludeLive, excludeNextMatch]);
+
   // Group matches by date (day)
-  const groupedByDay = Object.values(matches).reduce<Record<string, Match[]>>(
+  const groupedByDay = filteredMatches.reduce<Record<string, Match[]>>(
     (acc, match) => {
       const date = new Date(match.date);
       const dayKey = date.toLocaleDateString('vi-VN', {
