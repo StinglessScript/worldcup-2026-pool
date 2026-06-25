@@ -9,6 +9,7 @@ export {
   isLive,
   isUpcoming,
   isRecent,
+  isFinished,
   getTimeUntilCutoff,
   formatTimeRemaining,
   getUrgencyLevel,

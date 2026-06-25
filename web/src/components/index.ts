@@ -21,6 +21,7 @@ export {
   MatchesByGroup,
   MatchesHeader,
   MatchTabs,
+  type Tab,
   Podium,
   ProtectedRoute,
   RecentResults,

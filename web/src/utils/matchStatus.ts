@@ -1,40 +1,47 @@
 import { type Match } from '../services';
 
+// Estimated match duration; a match is considered "live" within this window
+// from kickoff. We rely on time (not score) because the FIFA feed sets a score
+// while a match is still in progress, so score alone can't separate
+// live-with-current-score from finished.
+const MATCH_DURATION_MS = 3 * 60 * 60 * 1000; // 3 hours
+
 /**
  * Check if a match is currently live (being played)
- * Uses a 3-hour window from kickoff time
+ * True when now is within the [kickoff, kickoff + 3h] window
  */
 export const isLive = (match: Match): boolean => {
   const now = Date.now();
   const kickoffTime = match.timestamp * 1000;
-  const matchEndEstimate = kickoffTime + 3 * 60 * 60 * 1000; // 3 hours after kickoff
-  const isPlayed = match.homeScore >= 0 && match.awayScore >= 0;
-
-  return !isPlayed && now >= kickoffTime && now < matchEndEstimate;
+  return now >= kickoffTime && now < kickoffTime + MATCH_DURATION_MS;
 };
 
 /**
- * Check if a match is upcoming (not yet played, within 24 hours)
+ * Check if a match has finished (past the estimated end of the live window)
+ */
+export const isFinished = (match: Match): boolean => {
+  const now = Date.now();
+  const kickoffTime = match.timestamp * 1000;
+  return now >= kickoffTime + MATCH_DURATION_MS;
+};
+
+/**
+ * Check if a match is upcoming (kickoff is still in the future)
  */
 export const isUpcoming = (match: Match): boolean => {
   const now = Date.now();
   const kickoffTime = match.timestamp * 1000;
-  const in24Hours = now + 24 * 60 * 60 * 1000;
-  const isPlayed = match.homeScore >= 0 && match.awayScore >= 0;
-
-  return !isPlayed && kickoffTime > now && kickoffTime <= in24Hours;
+  return kickoffTime > now;
 };
 
 /**
- * Check if a match was recently finished (within 24 hours)
+ * Check if a match was recently finished (within last 24 hours)
  */
 export const isRecent = (match: Match): boolean => {
   const now = Date.now();
   const kickoffTime = match.timestamp * 1000;
-  const isPlayed = match.homeScore >= 0 && match.awayScore >= 0;
-
-  // Match finished within last 24 hours
-  return isPlayed && kickoffTime > now - 24 * 60 * 60 * 1000;
+  // Finished and kicked off within the last 24 hours
+  return isFinished(match) && kickoffTime > now - 24 * 60 * 60 * 1000;
 };
 
 /**
@@ -85,9 +92,7 @@ export const getMatchStatus = (match: Match): MatchStatus => {
   if (isLive(match)) return 'live';
   if (isUpcoming(match)) return 'upcoming';
   if (isRecent(match)) return 'recent';
-
-  const isPlayed = match.homeScore >= 0 && match.awayScore >= 0;
-  if (isPlayed) return 'finished';
+  if (isFinished(match)) return 'finished';
 
   return 'scheduled';
 };

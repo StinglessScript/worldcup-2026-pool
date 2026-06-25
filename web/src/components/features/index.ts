@@ -7,7 +7,7 @@ export { MatchCard } from './MatchCard';
 export { MatchesByDay } from './MatchesByDay';
 export { MatchesByGroup } from './MatchesByGroup';
 export { MatchesHeader } from './MatchesHeader';
-export { MatchTabs } from './MatchTabs';
+export { MatchTabs, type Tab } from './MatchTabs';
 export { Podium } from './Podium';
 export { ProtectedRoute } from './ProtectedRoute';
 export { RecentResults } from './RecentResults';

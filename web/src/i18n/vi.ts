@@ -36,6 +36,12 @@ export const vi = {
     predictBefore: 'Dự đoán trước',
     liveMatches: 'Đang diễn ra',
     recentResults: 'Kết quả gần đây',
+    tabLive: 'Đang diễn ra',
+    tabUpcoming: 'Chưa diễn ra',
+    tabFinished: 'Đã kết thúc',
+    noLive: 'Hiện không có trận nào đang diễn ra',
+    noUpcoming: 'Không có trận nào sắp diễn ra',
+    noFinished: 'Chưa có trận nào kết thúc',
   },
 
   // Matches Header
