@@ -1,34 +1,57 @@
 import { type Match } from '../services';
 
-// Estimated match duration; a match is considered "live" within this window
-// from kickoff. We rely on time (not score) because the FIFA feed sets a score
-// while a match is still in progress, so score alone can't separate
-// live-with-current-score from finished.
+// Estimated match duration; used only as a fallback for records that predate
+// the persisted FIFA `matchStatus` field. A match is considered "live" within
+// this window from kickoff. We rely on time (not score) here because the FIFA
+// feed sets a score while a match is still in progress, so score alone can't
+// separate live-with-current-score from finished.
 const MATCH_DURATION_MS = 3 * 60 * 60 * 1000; // 3 hours
 
+// FIFA `matchStatus` values. There is no official documentation for these;
+// they were verified against the live feed (0 = finished/full time,
+// 1 = not started, 3 = live/in play). When the field is present we trust it,
+// since it clears the live tab the moment the feed reports full time instead
+// of waiting out a fixed time window.
+const FIFA_STATUS_FINISHED = 0;
+const FIFA_STATUS_LIVE = 3;
+
 /**
- * Check if a match is currently live (being played)
- * True when now is within the [kickoff, kickoff + 3h] window
+ * Check if a match is currently live (being played).
+ * Uses the FIFA status when available, else the [kickoff, kickoff + 3h] window.
  */
 export const isLive = (match: Match): boolean => {
+  if (typeof match.matchStatus === 'number') {
+    return match.matchStatus === FIFA_STATUS_LIVE;
+  }
   const now = Date.now();
   const kickoffTime = match.timestamp * 1000;
   return now >= kickoffTime && now < kickoffTime + MATCH_DURATION_MS;
 };
 
 /**
- * Check if a match has finished (past the estimated end of the live window)
+ * Check if a match has finished.
+ * Uses the FIFA status when available, else the end of the time window.
  */
 export const isFinished = (match: Match): boolean => {
+  if (typeof match.matchStatus === 'number') {
+    return match.matchStatus === FIFA_STATUS_FINISHED;
+  }
   const now = Date.now();
   const kickoffTime = match.timestamp * 1000;
   return now >= kickoffTime + MATCH_DURATION_MS;
 };
 
 /**
- * Check if a match is upcoming (kickoff is still in the future)
+ * Check if a match is upcoming (not started yet).
+ * Uses the FIFA status when available, else whether kickoff is in the future.
  */
 export const isUpcoming = (match: Match): boolean => {
+  if (typeof match.matchStatus === 'number') {
+    return (
+      match.matchStatus !== FIFA_STATUS_FINISHED &&
+      match.matchStatus !== FIFA_STATUS_LIVE
+    );
+  }
   const now = Date.now();
   const kickoffTime = match.timestamp * 1000;
   return kickoffTime > now;

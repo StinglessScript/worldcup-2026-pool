@@ -88,6 +88,8 @@ function fifaMatchToDbFormat(fifaMatch) {
     away: fifaMatch.Away?.Abbreviation || '',
     awayName: fifaMatch.Away?.ShortClubName || getLocaleText(fifaMatch.Away?.TeamName),
     awayScore: fifaMatch.AwayTeamScore ?? fifaMatch.Away?.Score ?? -1,
+    // FIFA match status: 0 = finished, 1 = not started, 3 = live.
+    matchStatus: fifaMatch.MatchStatus,
   };
 }
 
@@ -154,6 +156,15 @@ async function main() {
           }
           if (parsed.awayScore >= 0 && existing.awayScore !== parsed.awayScore) {
             updates[`matches/${existingGameId}/awayScore`] = parsed.awayScore;
+            updatedCount++;
+          }
+          // Track status transitions (upcoming -> live -> finished) so the
+          // live tab clears as soon as the feed reports full time.
+          if (
+            parsed.matchStatus != null &&
+            existing.matchStatus !== parsed.matchStatus
+          ) {
+            updates[`matches/${existingGameId}/matchStatus`] = parsed.matchStatus;
             updatedCount++;
           }
         } else {

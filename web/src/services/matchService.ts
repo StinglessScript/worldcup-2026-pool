@@ -21,6 +21,10 @@ export interface Match {
   away: string;
   awayName: string;
   awayScore: number;
+  // FIFA feed status. Optional because records created before this field
+  // existed won't have it (utils/matchStatus falls back to time-based logic).
+  // 0 = finished, 1 = not started, 3 = live.
+  matchStatus?: number;
 }
 
 export interface MatchesData {
@@ -47,6 +51,7 @@ interface FifaApiMatch {
     ShortClubName: string | null;
     Score: number | null;
   };
+  MatchStatus: number;
   PlaceHolderA: string;
   PlaceHolderB: string;
 }
@@ -105,6 +110,7 @@ const transformFifaData = (results: FifaApiMatch[]): MatchesData => {
       away,
       awayName,
       awayScore: item.Away?.Score ?? -1,
+      matchStatus: item.MatchStatus,
     };
   });
 
