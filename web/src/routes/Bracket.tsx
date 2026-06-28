@@ -254,14 +254,7 @@ export const Bracket = () => {
 
   return (
     <AppLayout>
-      <div className="pt-8 px-4 pb-8">
-        <h1 className="text-3xl font-bold text-white mb-1 max-w-2xl mx-auto">
-          {vi.bracket.title}
-        </h1>
-        <p className="text-white/50 text-sm mb-6 max-w-2xl mx-auto">
-          {user ? vi.bracket.subtitle : vi.bracket.subtitleGuest}
-        </p>
-
+      <div className="pt-4 px-4 pb-8">
         {loading || !matches ? (
           <p className="text-white/50">{vi.common.loading}</p>
         ) : (
