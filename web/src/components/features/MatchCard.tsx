@@ -54,8 +54,12 @@ export const MatchCard = ({
   // Use utility functions for match status
   const matchIsLive = isLive(match);
 
-  // Can predict if: own profile, user exists, predictions not closed (10 mins before kickoff)
-  const canPredict = isOwnProfile && userId && !predictionsClosed;
+  // Teams may be undecided for upcoming knockout rounds.
+  const hasTeams = !!match.home && !!match.away;
+
+  // Can predict if: own profile, user exists, teams decided, predictions not
+  // closed (10 mins before kickoff)
+  const canPredict = isOwnProfile && userId && hasTeams && !predictionsClosed;
 
   // Reveal a prediction value only for own profile, or for others once predictions are closed
   const canRevealPrediction = isOwnProfile || predictionsClosed;
@@ -160,8 +164,8 @@ export const MatchCard = ({
               alt={match.home}
               className="h-6 w-9 md:h-8 md:w-12 object-contain rounded-sm"
             />
-            <span className="flex-1 font-medium text-sm md:text-base">
-              {match.homeName}
+            <span className={`flex-1 font-medium text-sm md:text-base ${match.homeName ? '' : 'text-white/40 italic'}`}>
+              {match.homeName || 'Chờ xác định'}
             </span>
             <span className={scoreClass}>
               {isPlayed ? match.homeScore : '-'}
@@ -206,8 +210,8 @@ export const MatchCard = ({
               alt={match.away}
               className="h-6 w-9 md:h-8 md:w-12 object-contain rounded-sm"
             />
-            <span className="flex-1 font-medium text-sm md:text-base">
-              {match.awayName}
+            <span className={`flex-1 font-medium text-sm md:text-base ${match.awayName ? '' : 'text-white/40 italic'}`}>
+              {match.awayName || 'Chờ xác định'}
             </span>
             <span className={scoreClass}>
               {isPlayed ? match.awayScore : '-'}

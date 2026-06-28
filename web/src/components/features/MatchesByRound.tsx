@@ -15,8 +15,8 @@ type MatchesByRoundProps = {
 
 /**
  * Upcoming matches grouped by round (Vòng 1/32, 1/16, Tứ kết…), so knockout
- * ties are easy to track and predict together. Matches without both teams
- * decided yet are hidden (they can't be predicted).
+ * ties are easy to track and predict together. Rounds whose teams aren't
+ * decided yet still show ("Chờ xác định"); they just can't be predicted.
  */
 export const MatchesByRound = ({
   matches,
@@ -25,7 +25,7 @@ export const MatchesByRound = ({
   predictions,
 }: MatchesByRoundProps) => {
   const upcoming = Object.values(matches).filter(
-    (m) => !isFinished(m) && !isLive(m) && !!m.home && !!m.away
+    (m) => !isFinished(m) && !isLive(m)
   );
 
   const grouped = upcoming.reduce<Record<string, Match[]>>((acc, match) => {
