@@ -94,16 +94,13 @@ function fifaMatchToDbFormat(fifaMatch) {
 }
 
 /**
- * Fetch recent matches from FIFA API.
- * Window starts yesterday so late goals in matches that kick off near
- * midnight UTC are still captured after the UTC date rolls over.
+ * Fetch the full tournament calendar from FIFA API.
+ * We pull every match (not a date window) so that knockout team
+ * assignments — which FIFA fills in days before kickoff — get synced into
+ * the DB as soon as they are known, not just live scores in the window.
  */
 async function fetchFifaMatches() {
-  const now = new Date();
-  const yesterday = new Date(now.getTime() - 86400000).toISOString().split('T')[0];
-  const tomorrow = new Date(now.getTime() + 86400000).toISOString().split('T')[0];
-
-  const url = `https://api.fifa.com/api/v3/calendar/matches?idseason=${FIFA_SEASON_ID}&idcompetition=${FIFA_COMPETITION_ID}&from=${yesterday}&to=${tomorrow}&count=500`;
+  const url = `https://api.fifa.com/api/v3/calendar/matches?idseason=${FIFA_SEASON_ID}&idcompetition=${FIFA_COMPETITION_ID}&count=500`;
 
   console.log(`Fetching FIFA API: ${url}`);
   const res = await fetch(url);
@@ -166,6 +163,21 @@ async function main() {
           ) {
             updates[`matches/${existingGameId}/matchStatus`] = parsed.matchStatus;
             updatedCount++;
+          }
+          // Sync knockout team assignments once FIFA fills them in.
+          // Only when the API now reports a real team, so we never overwrite
+          // a known team with an empty placeholder.
+          if (parsed.home && parsed.home !== existing.home) {
+            updates[`matches/${existingGameId}/home`] = parsed.home;
+            updates[`matches/${existingGameId}/homeName`] = parsed.homeName;
+            updatedCount++;
+            console.log(`Team set: game ${existingGameId} home -> ${parsed.home}`);
+          }
+          if (parsed.away && parsed.away !== existing.away) {
+            updates[`matches/${existingGameId}/away`] = parsed.away;
+            updates[`matches/${existingGameId}/awayName`] = parsed.awayName;
+            updatedCount++;
+            console.log(`Team set: game ${existingGameId} away -> ${parsed.away}`);
           }
         } else {
           // New match not in DB - insert full record
