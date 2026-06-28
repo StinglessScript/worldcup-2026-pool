@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { AppLayout, Card } from '../components';
 import { vi } from '../i18n';
 
@@ -12,7 +13,13 @@ const getFlag = (code: string): string =>
   flagModules['../assets/flags/UNKNOWN.png'];
 
 export const Rules = () => {
-  const [tab, setTab] = React.useState<'group' | 'knockout'>('group');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab: 'group' | 'knockout' =
+    searchParams.get('tab') === 'knockout' ? 'knockout' : 'group';
+  const setTab = (next: 'group' | 'knockout') =>
+    setSearchParams(next === 'knockout' ? { tab: 'knockout' } : {}, {
+      replace: true,
+    });
 
   return (
     <AppLayout>
