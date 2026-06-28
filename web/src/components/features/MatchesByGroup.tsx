@@ -72,6 +72,7 @@ export const MatchesByGroup = ({
                   isOwnProfile={isOwnProfile}
                   userId={userId}
                   prediction={predictions?.[match.game]}
+                  predictions={predictions}
                 />
               ))}
           </div>

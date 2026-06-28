@@ -1,8 +1,13 @@
 import React from 'react';
-import { type Match, type Prediction, savePrediction } from '../../services';
+import {
+  type Match,
+  type Prediction,
+  type UserPredictions,
+  savePrediction,
+} from '../../services';
 import { vi } from '../../i18n';
 import { Card } from '../ui/Card';
-import { isLive } from '../../utils';
+import { isLive, isKnockout, roundStarGame } from '../../utils';
 
 // Import all flags dynamically
 const flagModules: Record<string, string> = import.meta.glob(
@@ -24,6 +29,8 @@ type MatchCardProps = {
   isOwnProfile?: boolean;
   userId?: string;
   prediction?: Prediction;
+  /** All of the user's predictions — needed for the one-star-per-round rule. */
+  predictions?: UserPredictions;
   variant?: MatchCardVariant;
 };
 
@@ -32,6 +39,7 @@ export const MatchCard = ({
   isOwnProfile = false,
   userId,
   prediction,
+  predictions,
   variant = 'default',
 }: MatchCardProps) => {
   const matchDate = new Date(match.date);
@@ -60,6 +68,10 @@ export const MatchCard = ({
   const [awayPrediction, setAwayPrediction] = React.useState<string>(
     prediction?.awayPrediction?.toString() ?? ''
   );
+  const [advance, setAdvance] = React.useState<'home' | 'away'>(
+    prediction?.advance ?? 'home'
+  );
+  const [star, setStar] = React.useState<boolean>(!!prediction?.star);
   const [saving, setSaving] = React.useState(false);
 
   // Update local state when prediction prop changes
@@ -67,20 +79,36 @@ export const MatchCard = ({
     if (prediction) {
       setHomePrediction(prediction.homePrediction?.toString() ?? '');
       setAwayPrediction(prediction.awayPrediction?.toString() ?? '');
+      setAdvance(prediction.advance ?? 'home');
+      setStar(!!prediction.star);
     }
   }, [prediction]);
 
-  const handleSavePrediction = async () => {
-    if (!userId || !canPredict) return;
+  const knockout = isKnockout(match) && !!match.home && !!match.away;
+  // Another match in this round already starred by the user?
+  const otherStar = knockout
+    ? roundStarGame(predictions ?? {}, match.game)
+    : undefined;
 
+  // Persist with explicit advance/star to avoid stale state in click handlers.
+  const commit = async (adv: 'home' | 'away', st: boolean) => {
+    if (!userId || !canPredict) return;
     const home = parseInt(homePrediction, 10);
     const away = parseInt(awayPrediction, 10);
-
     if (isNaN(home) || isNaN(away) || home < 0 || away < 0) return;
 
     setSaving(true);
     try {
-      await savePrediction(userId, match.game, home, away);
+      // For a decisive scoreline the advancer is the higher side; only a draw
+      // uses the explicit pick.
+      const advancer = home > away ? 'home' : home < away ? 'away' : adv;
+      await savePrediction(
+        userId,
+        match.game,
+        home,
+        away,
+        knockout ? { advance: advancer, star: st } : undefined
+      );
     } catch (error) {
       console.error('Error saving prediction:', error);
     } finally {
@@ -90,7 +118,7 @@ export const MatchCard = ({
 
   const handleBlur = () => {
     if (homePrediction !== '' && awayPrediction !== '') {
-      void handleSavePrediction();
+      void commit(advance, star);
     }
   };
 
@@ -249,6 +277,85 @@ export const MatchCard = ({
           </div>
         )}
       </div>
+
+      {/* Knockout: advance pick + hope star */}
+      {knockout && canPredict && (() => {
+        const h = parseInt(homePrediction, 10);
+        const a = parseInt(awayPrediction, 10);
+        const valid = !isNaN(h) && !isNaN(a);
+        const isDraw = valid && h === a;
+        const derived: 'home' | 'away' =
+          valid && h !== a ? (h > a ? 'home' : 'away') : advance;
+        const sideBtn = (side: 'home' | 'away') => {
+          const code = side === 'home' ? match.home : match.away;
+          const name = side === 'home' ? match.homeName : match.awayName;
+          const sel = derived === side;
+          return (
+            <button
+              key={side}
+              type="button"
+              disabled={!isDraw || saving}
+              onClick={() => {
+                setAdvance(side);
+                void commit(side, star);
+              }}
+              className={`flex items-center gap-1.5 px-2 py-1 rounded border text-xs disabled:cursor-default ${
+                sel
+                  ? 'border-green-400/40 bg-green-600/20 text-white'
+                  : 'border-white/15 bg-white/5 text-white/60'
+              }`}
+            >
+              <img src={getFlag(code)} alt="" className="h-3.5 w-5 object-contain rounded-sm" />
+              {name}
+              {sel && <span className="text-green-400">✓</span>}
+            </button>
+          );
+        };
+        return (
+          <div className="mb-3">
+            <div className="text-xs text-white/50 mb-1.5">
+              {vi.rules.advancePickLabel}
+              {isDraw && <span className="text-yellow-400/80"> (hòa — chọn đội đi tiếp)</span>}
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              {sideBtn('home')}
+              {sideBtn('away')}
+              <button
+                type="button"
+                disabled={(!!otherStar && !star) || saving}
+                onClick={() => {
+                  const next = !star;
+                  setStar(next);
+                  void commit(advance, next);
+                }}
+                title={vi.rules.starTitle}
+                className={`ml-auto flex items-center gap-1 px-2 py-1 rounded border text-xs disabled:opacity-40 ${
+                  star
+                    ? 'border-yellow-400/50 bg-yellow-500/20 text-yellow-300'
+                    : 'border-white/15 bg-white/5 text-white/50'
+                }`}
+              >
+                <span>{star ? '⭐' : '☆'}</span>
+                <span className="hidden sm:inline">{vi.rules.starTitle}</span>
+              </button>
+            </div>
+            {!!otherStar && !star && (
+              <p className="text-[11px] text-yellow-300/70 mt-1">
+                Vòng này bạn đã đặt sao ở trận khác.
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* Knockout (read-only): show another user's advance pick + star after lock */}
+      {knockout && !canPredict && canRevealPrediction && prediction?.advance && (
+        <div className="mb-3 text-xs text-white/60 flex items-center gap-1.5">
+          <span className="text-white/40">{vi.rules.advancePickLabel}:</span>
+          {prediction.advance === 'home' ? match.homeName : match.awayName}
+          {prediction.star && <span className="text-yellow-300">⭐</span>}
+        </div>
+      )}
 
       {/* Footer: Group, Stadium, Date/Time */}
       <div className="flex items-center gap-2 text-xs text-white/50">

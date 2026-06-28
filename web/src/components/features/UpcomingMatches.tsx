@@ -76,6 +76,7 @@ export const UpcomingMatches = ({
               isOwnProfile={isOwnProfile}
               userId={userId}
               prediction={predictions?.[match.game]}
+              predictions={predictions}
               variant="upcoming"
             />
 

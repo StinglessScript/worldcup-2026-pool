@@ -43,6 +43,7 @@ export const RecentResults = ({
             isOwnProfile={isOwnProfile}
             userId={userId}
             prediction={predictions?.[match.game]}
+            predictions={predictions}
             variant="recent"
           />
         ))}

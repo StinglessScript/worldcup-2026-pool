@@ -404,7 +404,6 @@ const PredictModal = ({
       await savePrediction(userId, gameId, h, a, {
         advance: predAdvance!,
         star,
-        clearStarGameIds: star ? roundGames : undefined,
       });
       onClose();
     } catch (e) {
@@ -495,11 +494,12 @@ const PredictModal = ({
           </div>
         </div>
 
-        {/* Star toggle */}
+        {/* Star toggle (one per round) */}
         <button
           type="button"
+          disabled={!!otherStar && !star}
           onClick={() => setStar((s) => !s)}
-          className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-sm mb-2 ${
+          className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-sm mb-2 disabled:opacity-40 ${
             star
               ? 'border-yellow-400/50 bg-yellow-500/20 text-yellow-300'
               : 'border-white/15 bg-white/5 text-white/60'
@@ -508,9 +508,9 @@ const PredictModal = ({
           <span>{star ? '⭐' : '☆'}</span>
           {vi.rules.starTitle}
         </button>
-        {star && otherStar && (
+        {!!otherStar && !star && (
           <p className="text-[11px] text-yellow-300/70 mb-2">
-            Vòng này bạn đang đặt sao ở trận khác — lưu sẽ chuyển sao sang trận này.
+            Vòng này bạn đã đặt sao ở trận khác — bỏ sao ở đó trước.
           </p>
         )}
 

@@ -16,3 +16,11 @@ export {
   getMatchStatus,
   type MatchStatus,
 } from './matchStatus';
+
+export {
+  KO_ROUND_GAMES,
+  roundKey,
+  roundGameIds,
+  isKnockout,
+  roundStarGame,
+} from './knockout';
