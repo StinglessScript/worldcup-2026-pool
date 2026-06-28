@@ -123,14 +123,14 @@ const MatchCard = ({
       type="button"
       disabled={!clickable}
       onClick={onClick}
-      className={`w-28 sm:w-32 rounded-lg border bg-white/5 overflow-hidden shrink-0 text-left ${
+      className={`w-28 sm:w-32 rounded-lg border overflow-hidden shrink-0 text-left bg-neutral-900/90 backdrop-blur-sm shadow-md shadow-black/40 ${
         clickable
-          ? 'border-blue-400/40 hover:bg-white/10 cursor-pointer'
+          ? 'border-blue-400/50 hover:bg-neutral-800 cursor-pointer'
           : 'border-white/15 cursor-default'
       }`}
     >
       {kickoff && (
-        <div className="px-2 py-1 text-[10px] text-white/40 border-b border-white/10 text-center">
+        <div className="px-2 py-1 text-[10px] text-white/55 border-b border-white/10 text-center">
           {kickoff}
         </div>
       )}
@@ -164,7 +164,7 @@ const MatchCard = ({
   );
 };
 
-const LINE = 'bg-white/20';
+const LINE = 'bg-white/30';
 const Stub = () => <div className={`h-px w-3 ${LINE}`} />;
 
 type NodeProps = {
