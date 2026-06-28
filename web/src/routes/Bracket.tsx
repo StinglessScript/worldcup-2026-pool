@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { AppLayout } from '../components';
 import { useMatches, useAuth } from '../hooks';
 import { vi } from '../i18n';
@@ -253,27 +254,32 @@ const Node = ({ num, matches, predictions, side, canPredict, onPick }: NodeProps
 };
 
 export const Bracket = () => {
-  const { matches, loading } = useMatches();
+  const { matches: realMatches, loading } = useMatches();
   const { user } = useAuth();
-  const [predictions, setPredictions] = React.useState<UserPredictions>({});
+  const [realPredictions, setPredictions] = React.useState<UserPredictions>({});
   const [pick, setPick] = React.useState<number | null>(null);
+  const [searchParams] = useSearchParams();
+  const demo = searchParams.get('demo') === '1';
 
   React.useEffect(() => {
-    if (!user) {
+    if (!user || demo) {
       setPredictions({});
       return;
     }
     return subscribeToPredictions(user.uid, setPredictions);
-  }, [user]);
+  }, [user, demo]);
 
-  const canPredict = !!user;
+  // Demo mode: render hardcoded results/points (no DB), for previewing the UI.
+  const matches = demo ? DEMO_MATCHES : realMatches;
+  const predictions = demo ? DEMO_PREDICTIONS : realPredictions;
+  const canPredict = !demo && !!user;
 
   return (
     <AppLayout>
       <div className="pt-4 px-4 pb-8">
-        {loading || !matches ? (
+        {!demo && (loading || !matches) ? (
           <p className="text-white/50">{vi.common.loading}</p>
-        ) : (
+        ) : matches ? (
           <div className="overflow-x-auto pb-4">
             <div className="flex items-center justify-center gap-2 min-w-max mx-auto">
               <Node
@@ -319,7 +325,7 @@ export const Bracket = () => {
               />
             </div>
           </div>
-        )}
+        ) : null}
       </div>
 
       {pick != null && user && matches && matches[String(pick)] && (
@@ -519,4 +525,78 @@ const PredictModal = ({
       </div>
     </div>
   );
+};
+
+// ---- Demo data (hardcoded, preview only via ?demo=1; never written to DB) ----
+
+const dm = (
+  game: number,
+  round: string,
+  home: string,
+  away: string,
+  homeScore = -1,
+  awayScore = -1,
+  matchStatus = 1
+): Match => ({
+  game,
+  fifaId: String(game),
+  round,
+  group: null,
+  date: '2026-07-01T19:00:00Z',
+  timestamp: 1790000000,
+  location: '',
+  locationCity: '',
+  locationCountry: '',
+  home,
+  homeName: home,
+  homeScore,
+  away,
+  awayName: away,
+  awayScore,
+  matchStatus,
+});
+
+const R32 = 'Round of 32';
+const R16 = 'Round of 16';
+const QF = 'Quarter-final';
+
+const DEMO_MATCHES: MatchesData = {
+  // Round of 32 — all finished
+  73: dm(73, R32, 'RSA', 'CAN', 1, 2, 0),
+  74: dm(74, R32, 'GER', 'PAR', 3, 0, 0),
+  75: dm(75, R32, 'NED', 'MAR', 2, 1, 0),
+  76: dm(76, R32, 'BRA', 'JPN', 4, 0, 0),
+  77: dm(77, R32, 'FRA', 'SWE', 1, 0, 0),
+  78: dm(78, R32, 'CIV', 'NOR', 1, 1, 0),
+  79: dm(79, R32, 'MEX', 'ECU', 0, 2, 0),
+  80: dm(80, R32, 'ENG', 'COD', 3, 1, 0),
+  81: dm(81, R32, 'USA', 'BIH', 0, 1, 0),
+  82: dm(82, R32, 'BEL', 'SEN', 2, 0, 0),
+  83: dm(83, R32, 'POR', 'CRO', 2, 1, 0),
+  84: dm(84, R32, 'ESP', 'AUT', 3, 2, 0),
+  85: dm(85, R32, 'SUI', 'ALG', 1, 0, 0),
+  86: dm(86, R32, 'ARG', 'CPV', 4, 1, 0),
+  87: dm(87, R32, 'COL', 'GHA', 2, 2, 0),
+  88: dm(88, R32, 'AUS', 'EGY', 0, 1, 0),
+  // Round of 16 — teams filled from winners; some finished
+  89: dm(89, R16, 'GER', 'FRA', 2, 1, 0),
+  90: dm(90, R16, 'CAN', 'NED', 0, 3, 0),
+  91: dm(91, R16, 'BRA', 'NOR', 2, 0, 0),
+  92: dm(92, R16, 'ECU', 'ENG', 1, 2, 0),
+  93: dm(93, R16, 'POR', 'ESP'),
+  94: dm(94, R16, 'BIH', 'BEL'),
+  95: dm(95, R16, 'ARG', 'EGY'),
+  96: dm(96, R16, 'SUI', 'GHA'),
+  // Quarter-final — only the pairs whose feeders finished are known
+  97: dm(97, QF, 'GER', 'NED'),
+  99: dm(99, QF, 'BRA', 'ENG'),
+};
+
+const DEMO_PREDICTIONS: UserPredictions = {
+  73: { homePrediction: 1, awayPrediction: 2, points: 20, updatedAt: 0, advance: 'away' },
+  74: { homePrediction: 2, awayPrediction: 0, points: 14, updatedAt: 0, advance: 'home' },
+  76: { homePrediction: 3, awayPrediction: 0, points: 28, updatedAt: 0, advance: 'home', star: true },
+  79: { homePrediction: 2, awayPrediction: 1, points: 0, updatedAt: 0, advance: 'home' },
+  89: { homePrediction: 2, awayPrediction: 1, points: 40, updatedAt: 0, advance: 'home' },
+  90: { homePrediction: 2, awayPrediction: 0, points: -20, updatedAt: 0, advance: 'home', star: true },
 };
