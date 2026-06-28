@@ -53,6 +53,65 @@ function getWinner(home, away) {
 }
 
 /**
+ * Which side advanced ('home' | 'away' | null), from the FIFA Winner team id.
+ * Reliable for knockout matches decided by penalties (FIFA sets Winner even
+ * when the recorded score is a draw).
+ */
+function winnerSide(fifaMatch) {
+  const w = fifaMatch.Winner;
+  if (!w) return null;
+  if (fifaMatch.Home?.IdTeam && w === fifaMatch.Home.IdTeam) return 'home';
+  if (fifaMatch.Away?.IdTeam && w === fifaMatch.Away.IdTeam) return 'away';
+  return null;
+}
+
+/**
+ * Round multiplier by FIFA MatchNumber. Group stage is 1; knockout escalates.
+ */
+function getMultiplier(game) {
+  const n = Number(game);
+  if (n <= 88) return 1; // group stage + Round of 32
+  if (n <= 96) return 2; // Round of 16
+  if (n <= 100) return 3; // Quarter-finals
+  if (n <= 102) return 4; // Semi-finals
+  if (n === 103) return 3; // Third-place play-off
+  return 5; // Final (104)
+}
+
+/**
+ * Knockout points (mirrors the Rules page):
+ *   base = score (15 exact / 10−diff / 0) + advance bonus (+5 if right team goes through)
+ *   total = base × round multiplier
+ *   hope star: ×2 if the advance pick is right, else −10 × multiplier
+ * Scored only once the actual advancing side is known.
+ */
+function calculateKnockoutPoints(match, pred) {
+  const hs = match.homeScore;
+  const as = match.awayScore;
+  const hp = pred.homePrediction;
+  const ap = pred.awayPrediction;
+  if (hs < 0 || as < 0 || hp == null || ap == null) return 0;
+
+  let score = 0;
+  if (hs === hp && as === ap) score = 15;
+  else if (getWinner(hs, as) === getWinner(hp, ap)) {
+    score = Math.max(0, 10 - (Math.abs(hp - hs) + Math.abs(ap - as)));
+  }
+
+  const mult = getMultiplier(match.game);
+  const actualWinner = match.winner; // 'home' | 'away'
+  const predAdvance =
+    pred.advance ?? (hp > ap ? 'home' : hp < ap ? 'away' : null);
+  const advanceCorrect =
+    !!actualWinner && !!predAdvance && actualWinner === predAdvance;
+
+  if (pred.star) {
+    return advanceCorrect ? (score + 5) * mult * 2 : -10 * mult;
+  }
+  return (score + (advanceCorrect ? 5 : 0)) * mult;
+}
+
+/**
  * Calculate prediction points
  * - 15 pts: exact score
  * - 10 - diff: correct winner
@@ -90,6 +149,8 @@ function fifaMatchToDbFormat(fifaMatch) {
     awayScore: fifaMatch.AwayTeamScore ?? fifaMatch.Away?.Score ?? -1,
     // FIFA match status: 0 = finished, 1 = not started, 3 = live.
     matchStatus: fifaMatch.MatchStatus,
+    // Advancing side ('home'|'away') for knockout; null until decided.
+    winner: winnerSide(fifaMatch),
   };
 }
 
@@ -179,6 +240,12 @@ async function main() {
             updatedCount++;
             console.log(`Team set: game ${existingGameId} away -> ${parsed.away}`);
           }
+          // Record the advancing side once known (never overwrite with null).
+          if (parsed.winner && existing.winner !== parsed.winner) {
+            updates[`matches/${existingGameId}/winner`] = parsed.winner;
+            updatedCount++;
+            console.log(`Winner set: game ${existingGameId} -> ${parsed.winner}`);
+          }
         } else {
           // New match not in DB - insert full record
           const gameId = String(parsed.game);
@@ -236,9 +303,27 @@ async function main() {
         match.homeScore != null && match.homeScore >= 0 &&
         match.awayScore != null && match.awayScore >= 0;
 
-      const newPoints = hasScore
-        ? calculatePoints(match.homeScore, match.awayScore, pred.homePrediction, pred.awayPrediction)
-        : 0;
+      // Knockout matches carry no group letter. Score them with the knockout
+      // rules — but only once the advancing side is known, so a hope star is
+      // never wrongly penalised in the brief window before FIFA sets it.
+      // Group-stage scoring is untouched.
+      const isKnockout = !match.group;
+
+      let newPoints = 0;
+      if (hasScore && !isKnockout) {
+        newPoints = calculatePoints(
+          match.homeScore,
+          match.awayScore,
+          pred.homePrediction,
+          pred.awayPrediction
+        );
+      } else if (
+        hasScore &&
+        isKnockout &&
+        (match.winner === 'home' || match.winner === 'away')
+      ) {
+        newPoints = calculateKnockoutPoints(match, pred);
+      }
 
       userTotals[userId] += newPoints;
 
