@@ -23,6 +23,7 @@ export const AppLayout = ({ children, className = '' }: AppLayoutProps) => {
       label: vi.nav.allMatches,
     },
     { to: '/leaderboard', icon: '🥇', label: vi.nav.leaderboard },
+    { to: '/bracket', icon: '🏆', label: vi.nav.bracket },
     { to: '/rules', icon: '📋', label: vi.nav.rules },
   ];
 

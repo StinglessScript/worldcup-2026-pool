@@ -6,6 +6,7 @@ import { ProtectedRoute } from './components';
 import { AuthProvider, MatchProvider, LeagueProvider, ToastProvider } from './context';
 import {
   About,
+  Bracket,
   EditLeague,
   EditProfile,
   Home,
@@ -46,6 +47,7 @@ createRoot(document.getElementById('root')!).render(
                 <Route path="/about" element={<About />} />
                 <Route path="/leaderboard" element={<Leaderboard />} />
                 <Route path="/rules" element={<Rules />} />
+                <Route path="/bracket" element={<Bracket />} />
                 <Route path="/leagues" element={<Leagues />} />
                 <Route
                   path="/leagues/new"

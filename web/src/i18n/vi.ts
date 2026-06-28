@@ -6,6 +6,7 @@ export const vi = {
     leaderboard: 'Bảng xếp hạng',
     leagues: 'Giải đấu',
     rules: 'Luật chơi',
+    bracket: 'Sơ đồ',
     about: 'Giới thiệu',
     editProfile: 'Sửa hồ sơ',
     signOut: 'Đăng xuất',
@@ -42,6 +43,16 @@ export const vi = {
     noLive: 'Hiện không có trận nào đang diễn ra',
     noUpcoming: 'Không có trận nào sắp diễn ra',
     noFinished: 'Chưa có trận nào kết thúc',
+  },
+
+  // Bracket
+  bracket: {
+    title: 'Sơ đồ nhánh',
+    subtitle: 'Chạm vào trận đã có đội để dự đoán tỉ số, đội đi tiếp và đặt ngôi sao hi vọng.',
+    subtitleGuest: 'Vòng loại trực tiếp World Cup 2026. Đăng nhập để dự đoán.',
+    final: 'CHUNG KẾT',
+    thirdPlace: 'Tranh hạng 3',
+    save: 'Lưu dự đoán',
   },
 
   // Matches Header

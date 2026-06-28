@@ -53,6 +53,12 @@
           },
           "updatedAt": {
             ".validate": "newData.isNumber()"
+          },
+          "advance": {
+            ".validate": "newData.isString() && (newData.val() === 'home' || newData.val() === 'away')"
+          },
+          "star": {
+            ".validate": "newData.isBoolean()"
           }
         }
       }

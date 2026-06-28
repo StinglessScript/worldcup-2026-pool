@@ -1,11 +1,15 @@
 import { db } from '../firebase';
-import { ref, get, set, onValue, type Unsubscribe } from 'firebase/database';
+import { ref, get, set, update, onValue, type Unsubscribe } from 'firebase/database';
 
 export interface Prediction {
   homePrediction: number;
   awayPrediction: number;
   points: number;
   updatedAt: number;
+  /** Knockout only: team the user expects to advance ('home' | 'away'). */
+  advance?: 'home' | 'away';
+  /** Knockout only: hope star placed on this match. */
+  star?: boolean;
 }
 
 export interface UserPredictions {
@@ -46,24 +50,47 @@ export const getPrediction = async (
 };
 
 /**
- * Save or update a prediction
+ * Save or update a prediction.
+ *
+ * For knockout matches pass `opts.advance` (team expected to go through) and
+ * `opts.star` (hope star). When starring, pass `opts.clearStarGameIds` with the
+ * other game ids of the same round so the previous star in that round is removed
+ * (one star per round).
  */
 export const savePrediction = async (
   userId: string,
   gameId: number,
   homePrediction: number,
-  awayPrediction: number
+  awayPrediction: number,
+  opts?: {
+    advance?: 'home' | 'away';
+    star?: boolean;
+    clearStarGameIds?: number[];
+  }
 ): Promise<void> => {
-  const predictionRef = ref(db, `predictions/${userId}/${gameId}`);
-
   const prediction: Prediction = {
     homePrediction,
     awayPrediction,
-    points: 0, // Points will be calculated by Cloud Function
+    points: 0, // Points calculated server-side
     updatedAt: Date.now(),
   };
+  if (opts?.advance) prediction.advance = opts.advance;
+  if (opts?.star) prediction.star = true;
 
-  await set(predictionRef, prediction);
+  // Simple case (group stage / score-only): single write.
+  if (!opts?.star || !opts.clearStarGameIds?.length) {
+    await set(ref(db, `predictions/${userId}/${gameId}`), prediction);
+    return;
+  }
+
+  // Starring: write this prediction and clear the star on other round games.
+  const updates: Record<string, unknown> = {
+    [`predictions/${userId}/${gameId}`]: prediction,
+  };
+  for (const g of opts.clearStarGameIds) {
+    if (g !== gameId) updates[`predictions/${userId}/${g}/star`] = null;
+  }
+  await update(ref(db), updates);
 };
 
 /**
