@@ -147,8 +147,24 @@ const MatchCard = ({
         win={awayWin}
         played={played}
       />
-      {/* Prediction / CTA footer */}
-      {prediction ? (
+      {/* Prediction / points / CTA footer */}
+      {prediction && played ? (
+        <div
+          className={`px-2 py-1 text-[10px] border-t border-white/10 flex items-center justify-between gap-1 ${
+            prediction.points > 0
+              ? 'text-green-400 bg-green-600/10'
+              : 'text-red-400 bg-red-600/10'
+          }`}
+        >
+          <span className="text-white/50">
+            Dự {prediction.homePrediction}-{prediction.awayPrediction}
+            {prediction.star && <span className="text-yellow-300"> ⭐</span>}
+          </span>
+          <span className="font-bold">
+            {prediction.points > 0 ? `+${prediction.points}` : prediction.points}đ
+          </span>
+        </div>
+      ) : prediction ? (
         <div className="px-2 py-1 text-[10px] text-blue-300 border-t border-white/10 flex items-center gap-1">
           <span>
             Dự: {prediction.homePrediction}-{prediction.awayPrediction}
