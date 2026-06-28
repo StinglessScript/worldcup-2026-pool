@@ -23,4 +23,5 @@ export {
   roundGameIds,
   isKnockout,
   roundStarGame,
+  roundLabelVi,
 } from './knockout';

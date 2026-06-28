@@ -19,6 +19,7 @@ export {
   MatchCard,
   MatchesByDay,
   MatchesByGroup,
+  MatchesByRound,
   MatchesHeader,
   MatchTabs,
   type Tab,

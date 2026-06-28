@@ -3,6 +3,7 @@ import {
   AppLayout,
   LiveMatches,
   MatchesByDay,
+  MatchesByRound,
   MatchTabs,
   type Tab,
 } from '../components';
@@ -89,16 +90,14 @@ export const Home = () => {
                 emptyMessage(vi.match.noLive)
               ))}
 
-            {/* Upcoming (not yet played) matches, grouped by day */}
+            {/* Upcoming (not yet played) matches, grouped by round */}
             {activeTab === 'upcoming' &&
               (counts.upcoming > 0 ? (
-                <MatchesByDay
+                <MatchesByRound
                   matches={matches}
                   isOwnProfile={isOwnProfile}
                   userId={user?.uid}
                   predictions={predictions}
-                  excludeLive={true}
-                  excludeFinished={true}
                 />
               ) : (
                 emptyMessage(vi.match.noUpcoming)

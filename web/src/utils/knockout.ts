@@ -25,6 +25,21 @@ export const roundGameIds = (n: number): number[] => KO_ROUND_GAMES[roundKey(n)]
 // Knockout matches have no group letter (group stage games carry "A".."L").
 export const isKnockout = (m?: Match): boolean => !!m && !m.group;
 
+// FIFA stage names → short Vietnamese round labels.
+const ROUND_LABELS: Record<string, string> = {
+  'First Stage': 'Vòng bảng',
+  'First stage': 'Vòng bảng',
+  'Round of 32': 'Vòng 1/32',
+  'Round of 16': 'Vòng 1/16',
+  'Quarter-final': 'Tứ kết',
+  'Quarter-finals': 'Tứ kết',
+  'Semi-final': 'Bán kết',
+  'Semi-finals': 'Bán kết',
+  'Play-off for third place': 'Tranh hạng 3',
+  Final: 'Chung kết',
+};
+export const roundLabelVi = (round: string): string => ROUND_LABELS[round] ?? round;
+
 // The game id in the same round the user has already starred (excluding `n`),
 // or undefined. Enforces one star per round in the UI.
 export const roundStarGame = (

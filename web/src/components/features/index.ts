@@ -6,6 +6,7 @@ export { LiveMatches } from './LiveMatches';
 export { MatchCard } from './MatchCard';
 export { MatchesByDay } from './MatchesByDay';
 export { MatchesByGroup } from './MatchesByGroup';
+export { MatchesByRound } from './MatchesByRound';
 export { MatchesHeader } from './MatchesHeader';
 export { MatchTabs, type Tab } from './MatchTabs';
 export { Podium } from './Podium';
