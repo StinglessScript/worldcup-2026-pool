@@ -23,6 +23,8 @@ export interface UserData {
   photoURL: string;
   score: number;
   admin: boolean;
+  /** Set on seeded/dev users so they can be excluded from the leaderboard */
+  mock?: boolean;
 }
 
 export const RESERVED_USERNAMES = [
@@ -263,10 +265,17 @@ export const subscribeToLeaderboard = (
       callback([]);
       return;
     }
-    const users: UserWithId[] = Object.entries(data).map(([id, user]) => ({
-      id,
-      ...user,
-    }));
+    const users: UserWithId[] = Object.entries(data)
+      // Exclude seeded/dev users: flagged with `mock`, or legacy seeds
+      // (devService ids start with `mock_`, the seed script uses `user_NNN`)
+      .filter(
+        ([id, user]) =>
+          !user.mock && !id.startsWith('mock_') && !/^user_\d+$/.test(id)
+      )
+      .map(([id, user]) => ({
+        id,
+        ...user,
+      }));
     // Sort by score descending
     users.sort((a, b) => b.score - a.score);
     callback(users);

@@ -85,6 +85,7 @@ async function main() {
       photoURL: '',
       score,
       admin: false,
+      mock: true,
     };
 
     usernames[username] = uid;
