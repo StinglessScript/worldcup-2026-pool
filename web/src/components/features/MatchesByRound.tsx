@@ -11,6 +11,12 @@ type MatchesByRoundProps = {
   isOwnProfile?: boolean;
   userId?: string;
   predictions?: UserPredictions;
+  /** Hide finished matches (home "upcoming" tab). */
+  excludeFinished?: boolean;
+  /** Hide live matches. */
+  excludeLive?: boolean;
+  /** Only knockout rounds (drop group stage). */
+  knockoutOnly?: boolean;
 };
 
 /**
@@ -23,12 +29,18 @@ export const MatchesByRound = ({
   isOwnProfile,
   userId,
   predictions,
+  excludeFinished = false,
+  excludeLive = false,
+  knockoutOnly = false,
 }: MatchesByRoundProps) => {
-  const upcoming = Object.values(matches).filter(
-    (m) => !isFinished(m) && !isLive(m)
-  );
+  const list = Object.values(matches).filter((m) => {
+    if (knockoutOnly && m.group) return false;
+    if (excludeFinished && isFinished(m)) return false;
+    if (excludeLive && isLive(m)) return false;
+    return true;
+  });
 
-  const grouped = upcoming.reduce<Record<string, Match[]>>((acc, match) => {
+  const grouped = list.reduce<Record<string, Match[]>>((acc, match) => {
     const key = match.round || '';
     (acc[key] ??= []).push(match);
     return acc;

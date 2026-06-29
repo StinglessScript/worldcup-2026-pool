@@ -2,10 +2,8 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import {
   AppLayout,
-  LiveMatches,
   MatchesByDay,
   MatchesByRound,
-  RecentResults,
   UserHeader,
 } from '../components';
 import { useMatches, useAuth } from '../hooks';
@@ -80,37 +78,23 @@ export const UserProfile = () => {
 
             {matches && (
               <>
-                {/* Live matches */}
-                <LiveMatches
-                  matches={matches}
-                  isOwnProfile={isOwnProfile}
-                  userId={profileUserId ?? undefined}
-                  predictions={predictions}
-                />
-
-                {/* Upcoming, grouped by round (with hope-star status) */}
+                {/* Knockout: every round shown complete (played + upcoming
+                    together), grouped by round, with hope-star status. */}
                 <MatchesByRound
                   matches={matches}
                   isOwnProfile={isOwnProfile}
                   userId={profileUserId ?? undefined}
                   predictions={predictions}
+                  knockoutOnly
                 />
 
-                {/* Recent results */}
-                <RecentResults
-                  matches={matches}
-                  isOwnProfile={isOwnProfile}
-                  userId={profileUserId ?? undefined}
-                  predictions={predictions}
-                />
-
-                {/* Finished, by day */}
+                {/* Group stage, by day */}
                 <MatchesByDay
                   matches={matches}
                   isOwnProfile={isOwnProfile}
                   userId={profileUserId ?? undefined}
                   predictions={predictions}
-                  onlyFinished={true}
+                  excludeKnockout={true}
                   sortDescending={true}
                 />
               </>

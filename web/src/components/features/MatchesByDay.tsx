@@ -16,6 +16,7 @@ type MatchesByDayProps = {
   excludeNextMatch?: boolean;
   excludeFinished?: boolean;
   onlyFinished?: boolean;
+  excludeKnockout?: boolean;
   sortDescending?: boolean;
 };
 
@@ -28,6 +29,7 @@ export const MatchesByDay = ({
   excludeNextMatch = false,
   excludeFinished = false,
   onlyFinished = false,
+  excludeKnockout = false,
   sortDescending = false,
 }: MatchesByDayProps) => {
   // Filter matches based on exclusions
@@ -50,6 +52,11 @@ export const MatchesByDay = ({
       matchList = matchList.filter((match) => !isLive(match));
     }
 
+    // Exclude knockout matches (kept in the by-round view instead)
+    if (excludeKnockout) {
+      matchList = matchList.filter((match) => !!match.group);
+    }
+
     // Exclude the next upcoming match if requested
     if (excludeNextMatch) {
       const nextMatch = matchList
@@ -66,7 +73,7 @@ export const MatchesByDay = ({
     }
 
     return matchList;
-  }, [matches, excludeLive, excludeNextMatch, excludeFinished, onlyFinished]);
+  }, [matches, excludeLive, excludeNextMatch, excludeFinished, onlyFinished, excludeKnockout]);
 
   // Group matches by date (day)
   const groupedByDay = filteredMatches.reduce<Record<string, Match[]>>(

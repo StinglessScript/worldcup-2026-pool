@@ -98,6 +98,8 @@ export const Home = () => {
                   isOwnProfile={isOwnProfile}
                   userId={user?.uid}
                   predictions={predictions}
+                  excludeFinished
+                  excludeLive
                 />
               ) : (
                 emptyMessage(vi.match.noUpcoming)
