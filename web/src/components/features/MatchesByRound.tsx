@@ -3,7 +3,7 @@ import {
   type MatchesData,
   type UserPredictions,
 } from '../../services';
-import { isLive, isFinished, roundLabelVi } from '../../utils';
+import { isLive, isFinished, roundLabelVi, roundGameIds } from '../../utils';
 import { MatchCard } from './MatchCard';
 
 type MatchesByRoundProps = {
@@ -43,11 +43,24 @@ export const MatchesByRound = ({
 
   return (
     <div className="flex flex-col gap-6">
-      {rounds.map((round) => (
+      {rounds.map((round) => {
+        // Whether this user has already placed their hope star in this round
+        // (doesn't reveal which match — that stays hidden until lock).
+        const starUsed = roundGameIds(grouped[round][0].game).some(
+          (g) => !!predictions?.[String(g)]?.star
+        );
+        return (
         <div key={round}>
-          <h3 className="text-lg font-semibold mb-3 text-white/80 pb-2">
-            {roundLabelVi(round)}
-          </h3>
+          <div className="flex items-center justify-between mb-3 pb-2">
+            <h3 className="text-lg font-semibold text-white/80">
+              {roundLabelVi(round)}
+            </h3>
+            {starUsed && (
+              <span className="text-xs text-yellow-300 bg-yellow-500/15 border border-yellow-400/30 px-2 py-0.5 rounded-full">
+                ⭐ Đã đặt sao
+              </span>
+            )}
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {grouped[round]
               .sort((a, b) => a.timestamp - b.timestamp)
@@ -63,7 +76,8 @@ export const MatchesByRound = ({
               ))}
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 };

@@ -4,8 +4,8 @@ import {
   AppLayout,
   LiveMatches,
   MatchesByDay,
+  MatchesByRound,
   RecentResults,
-  UpcomingMatches,
   UserHeader,
 } from '../components';
 import { useMatches, useAuth } from '../hooks';
@@ -80,22 +80,23 @@ export const UserProfile = () => {
 
             {matches && (
               <>
-                {/* Live matches section */}
+                {/* Live matches */}
                 <LiveMatches
                   matches={matches}
+                  isOwnProfile={isOwnProfile}
+                  userId={profileUserId ?? undefined}
+                  predictions={predictions}
                 />
 
-                {/* Upcoming matches section */}
-                {isOwnProfile && (
-                  <UpcomingMatches
-                    matches={matches}
-                    isOwnProfile={isOwnProfile}
-                    userId={profileUserId ?? undefined}
-                    predictions={predictions}
-                  />
-                )}
+                {/* Upcoming, grouped by round (with hope-star status) */}
+                <MatchesByRound
+                  matches={matches}
+                  isOwnProfile={isOwnProfile}
+                  userId={profileUserId ?? undefined}
+                  predictions={predictions}
+                />
 
-                {/* Recent results section */}
+                {/* Recent results */}
                 <RecentResults
                   matches={matches}
                   isOwnProfile={isOwnProfile}
@@ -103,11 +104,14 @@ export const UserProfile = () => {
                   predictions={predictions}
                 />
 
+                {/* Finished, by day */}
                 <MatchesByDay
                   matches={matches}
                   isOwnProfile={isOwnProfile}
                   userId={profileUserId ?? undefined}
                   predictions={predictions}
+                  onlyFinished={true}
+                  sortDescending={true}
                 />
               </>
             )}
