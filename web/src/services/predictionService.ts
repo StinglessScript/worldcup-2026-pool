@@ -76,6 +76,31 @@ export const savePrediction = async (
 };
 
 /**
+ * Fetch every given user's prediction for a single game.
+ *
+ * The database rules expose `.read` per user (`predictions/$userId`) but not on
+ * the `predictions` root, so we can't grab the whole node in one call — we read
+ * each user's slot for this game in parallel and keep only those who predicted.
+ */
+export const getPredictionsForGame = async (
+  userIds: string[],
+  gameId: number
+): Promise<Record<string, Prediction>> => {
+  const entries = await Promise.all(
+    userIds.map(async (uid) => {
+      const snapshot = await get(ref(db, `predictions/${uid}/${gameId}`));
+      return [uid, snapshot.exists() ? (snapshot.val() as Prediction) : null] as const;
+    })
+  );
+
+  const result: Record<string, Prediction> = {};
+  for (const [uid, prediction] of entries) {
+    if (prediction) result[uid] = prediction;
+  }
+  return result;
+};
+
+/**
  * Subscribe to real-time updates for a user's predictions
  */
 export const subscribeToPredictions = (

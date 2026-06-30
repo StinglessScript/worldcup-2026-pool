@@ -43,6 +43,25 @@ export const vi = {
     noLive: 'Hiện không có trận nào đang diễn ra',
     noUpcoming: 'Không có trận nào sắp diễn ra',
     noFinished: 'Chưa có trận nào kết thúc',
+    everyone: 'Dự đoán của mọi người',
+  },
+
+  // Match detail (everyone's predictions for one match)
+  matchDetail: {
+    title: 'Dự đoán của mọi người',
+    loading: 'Đang tải...',
+    notFound: 'Không tìm thấy trận đấu',
+    back: 'Quay lại',
+    prediction: 'Dự đoán',
+    points: 'Điểm',
+    advance: 'Đi tiếp',
+    noPredictions: 'Chưa có ai dự đoán trận này',
+    count: (n: number) => `${n} người đã dự đoán`,
+    lockedTitle: 'Dự đoán đang được giữ kín',
+    lockedDesc:
+      'Dự đoán của mọi người sẽ hiện sau khi trận bị khóa (10 phút trước giờ bóng lăn).',
+    yourPrediction: 'Dự đoán của bạn',
+    exactCount: (n: number) => `${n} người đoán đúng tỉ số`,
   },
 
   // Bracket

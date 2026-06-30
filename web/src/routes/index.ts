@@ -7,6 +7,7 @@ export { JoinLeague } from './JoinLeague';
 export { Leaderboard } from './Leaderboard';
 export { LeagueDetail } from './LeagueDetail';
 export { Leagues } from './Leagues';
+export { MatchDetail } from './MatchDetail';
 export { NewLeague } from './NewLeague';
 export { Rules } from './Rules';
 export { UserProfile } from './UserProfile';

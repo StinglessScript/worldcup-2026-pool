@@ -16,6 +16,7 @@ export type { UserData, UserWithId } from './userService';
 
 export {
   getPrediction,
+  getPredictionsForGame,
   getUserPredictions,
   savePrediction,
   subscribeToPredictions,

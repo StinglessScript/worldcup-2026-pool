@@ -25,6 +25,9 @@ export interface Match {
   // existed won't have it (utils/matchStatus falls back to time-based logic).
   // 0 = finished, 1 = not started, 3 = live.
   matchStatus?: number;
+  // Knockout only: which side advanced, set by update-scores once the FIFA feed
+  // reports a winner (covers penalty shootouts). Drives the advance bonus.
+  winner?: 'home' | 'away';
 }
 
 export interface MatchesData {

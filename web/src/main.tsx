@@ -14,6 +14,7 @@ import {
   Leaderboard,
   LeagueDetail,
   Leagues,
+  MatchDetail,
   NewLeague,
   Rules,
   UserProfile,
@@ -48,6 +49,7 @@ createRoot(document.getElementById('root')!).render(
                 <Route path="/leaderboard" element={<Leaderboard />} />
                 <Route path="/rules" element={<Rules />} />
                 <Route path="/bracket" element={<Bracket />} />
+                <Route path="/match/:gameId" element={<MatchDetail />} />
                 <Route path="/leagues" element={<Leagues />} />
                 <Route
                   path="/leagues/new"

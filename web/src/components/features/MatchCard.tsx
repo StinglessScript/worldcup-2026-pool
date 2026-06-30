@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import {
   type Match,
   type Prediction,
@@ -372,8 +373,15 @@ export const MatchCard = ({
         <span>
           {dateString}, {timeString}
         </span>
+        <Link
+          to={`/match/${match.game}`}
+          onClick={(e) => e.stopPropagation()}
+          className="ml-auto flex items-center gap-1 text-white/40 hover:text-white/80 transition-colors whitespace-nowrap"
+        >
+          👥 {vi.match.everyone}
+        </Link>
         {matchIsLive && variant !== 'live' && (
-          <span className="ml-auto flex items-center gap-1.5 text-red-500 font-bold animate-pulse">
+          <span className="flex items-center gap-1.5 text-red-500 font-bold animate-pulse">
             <span className="w-2 h-2 bg-red-500 rounded-full" />
             {vi.match.live}
           </span>
